@@ -1,0 +1,24 @@
+# Configuration for Anymal locomotion task
+
+task:
+  name: Isaac-Velocity-Rough-Anymal-C-v0
+  num_envs: 4096
+  episode_length: 1000
+  
+training:
+  algorithm: PPO
+  learning_rate: 0.0003
+  num_iterations: 1500
+  minibatch_size: 4096
+  discount: 0.99
+  
+observation_space:
+  proprioception: true
+  height_measurements: true
+  
+reward_terms:
+  track_lin_vel: 1.0
+  energy_expenditure: 0.005
+  dof_acceleration: 0.0
+  dof_velocity: 0.0
+  action_rate: 0.01
