@@ -42,12 +42,28 @@ This project extends Isaac Lab to implement reinforcement learning experiments f
    ```
    This allows you to use `python` commands directly. If you don't want to activate the environment, you can use `./isaaclab.sh -p` before every Python command.
 
-5. Install this project's extension in editable mode using:
+5. Clone the Isaac Lab repository:
+   ```bash
+   git clone git@github.com:isaac-sim/IsaacLab.git
+   ```
+
+6. Install Isaac Lab:
+   ```bash
+   ./IsaacLab/isaaclab.sh --install
+   ```
+
+7. Verify the Isaac Lab installation:
+   ```bash
+   python ./IsaacLab/scripts/tutorials/00_sim/create_empty.py
+   ```
+   This should launch the Isaac Sim viewer with an empty scene, confirming the installation is working correctly.
+
+8. Install this project's extension in editable mode using:
    ```bash
    python -m pip install -e source/isaaclab_rl_experiments
    ```
 
-6. Verify that the extension is correctly installed by listing the available tasks:
+9. Verify that the extension is correctly installed by listing the available tasks:
    ```bash
    python scripts/list_envs.py
    ```
