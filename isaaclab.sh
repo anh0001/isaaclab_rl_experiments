@@ -10,6 +10,11 @@ if [[ "$1" == "-p" || "$1" == "--python" ]]; then
     # Use the current Python from the activated environment
     python_exe=$(which python)
     echo "[INFO] Using python from: $python_exe"
+    
+    # Add IsaacLab to the Python path
+    export PYTHONPATH="$ISAAC_LAB_PATH:$ISAAC_LAB_PATH/source:$PYTHONPATH"
+    echo "[INFO] Added IsaacLab to PYTHONPATH: $ISAAC_LAB_PATH"
+    
     shift # Remove -p from arguments
     
     # Get the script path
