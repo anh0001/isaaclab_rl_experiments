@@ -8,24 +8,34 @@ if ! command -v conda &> /dev/null; then
     mkdir -p ~/miniconda3
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
     bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-    source ~/miniconda3/bin/activate
-    conda init --all
+    eval "$(~/miniconda3/bin/conda shell.bash hook)"
+    conda init bash
 else
     echo "Miniconda already installed."
 fi
 
-# Create and activate conda environment
-conda create --prefix isaaclab_env python=3.10 -y
+# Create conda environment
+echo "Creating isaaclab environment..."
+conda create --prefix ./isaaclab_env python=3.10 -y
+
+# Source conda to ensure we can activate environments
+source ~/.bashrc  # Or use: eval "$(conda shell.bash hook)"
+
+# Activate the environment
+echo "Activating environment..."
 conda activate ./isaaclab_env
 
-# Install PyTorch
-conda install pytorch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 pytorch-cuda=12.4 -c pytorch -c nvidia -y
+# Install PyTorch with specific version required by isaaclab
+echo "Installing PyTorch 2.5.1..."
+conda install pytorch=2.5.1 torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y
 
 # Install Isaac Sim
+echo "Installing Isaac Sim..."
 pip install --upgrade pip
 pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
 
 # Install additional dependencies
+echo "Installing system dependencies..."
 sudo apt-get install libnccl2 libnccl-dev -y
 sudo apt install cmake build-essential -y
 
