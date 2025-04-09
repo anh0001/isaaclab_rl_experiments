@@ -76,6 +76,9 @@ Make sure your conda environment is activated (`conda activate ./isaaclab_env`),
 
 **Using RSL-RL (Recommended for locomotion tasks):**
 ```bash
+# Train Unitree-A1
+python scripts/rsl_rl/train.py --task=Isaac-Velocity-Flat-Unitree-A1-v0 --num_envs=100 --headless
+
 # Train Ant
 python scripts/rsl_rl/train.py --task=Isaac-Ant-v0 --num_envs=4096 --experiment_name=ant_locomotion
 
