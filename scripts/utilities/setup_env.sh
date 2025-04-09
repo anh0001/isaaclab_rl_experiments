@@ -19,7 +19,7 @@ echo "Creating isaaclab environment..."
 conda create --prefix ./isaaclab_env python=3.10 -y
 
 # Source conda to ensure we can activate environments
-source ~/.bashrc  # Or use: eval "$(conda shell.bash hook)"
+eval "$(conda shell.bash hook)"
 
 # Activate the environment
 echo "Activating environment..."
@@ -27,7 +27,7 @@ conda activate ./isaaclab_env
 
 # Install PyTorch with specific version required by isaaclab
 echo "Installing PyTorch 2.5.1..."
-conda install pytorch=2.5.1 torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y
+conda install pytorch=2.5.1 torchvision torchaudio pytorch-cuda -c pytorch -c nvidia -y
 
 # Install Isaac Sim
 echo "Installing Isaac Sim..."
