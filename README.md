@@ -105,6 +105,9 @@ Note: Training in headless mode is faster. To visualize training, add the `--hea
 To evaluate a trained model (with the conda environment activated):
 
 ```bash
+# Evaluate Unitree A1
+python scripts/rsl_rl/play.py --task=Isaac-Velocity-Flat-Unitree-A1-v0 --num_envs=10 --checkpoint=logs/rsl_rl/unitree_a1_flat/2025-04-09_17-59-40/model_299.pt --video 
+
 # Evaluate Ant
 python scripts/rsl_rl/play.py --task=Isaac-Ant-v0 --num_envs=16 --checkpoint=logs/rsl_rl/ant_locomotion/<timestamp>/model_<iteration>.pt --video
 
