@@ -14,7 +14,7 @@ from . import agents
 ##
 
 gym.register(
-    id="Isaac-Velocity-Flat-Yonsoku-v0",
+    id="Template-Velocity-Flat-Yonsoku-v0",
     entry_point=f"{__name__}.yonsoku_env:YonsokuEnv",
     disable_env_checker=True,
     kwargs={

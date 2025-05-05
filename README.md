@@ -84,6 +84,9 @@ python scripts/rsl_rl/train.py --task=Isaac-Ant-v0 --num_envs=4096 --experiment_
 
 # Train Anymal
 python scripts/rsl_rl/train.py --task=Isaac-Velocity-Rough-Anymal-C-v0 --num_envs=2048 --experiment_name=anymal_c_rough
+
+# Train Yonsoku
+python scripts/rsl_rl/train.py --task=Template-Velocity-Flat-Yonsoku-v0 --num_envs=10
 ```
 
 **Using other frameworks:**
