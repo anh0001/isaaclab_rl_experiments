@@ -12,11 +12,11 @@ IsaacLab/
 **/*.dmp
 **/.thumbs
 
-# No USD files allowed in the repo
-**/*.usd
-**/*.usda
-**/*.usdc
-**/*.usdz
+# # No USD files allowed in the repo
+# **/*.usd
+# **/*.usda
+# **/*.usdc
+# **/*.usdz
 
 # Python
 .DS_Store
