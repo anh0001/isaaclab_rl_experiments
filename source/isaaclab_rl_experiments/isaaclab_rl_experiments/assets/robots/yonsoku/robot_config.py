@@ -6,7 +6,7 @@
 """Yonsoku quadruped robot configuration for Isaac Lab."""
 
 from isaaclab.assets import ArticulationCfg
-from isaaclab.assets.articulation import JointActuator
+from isaaclab.actuators import ImplicitActuatorCfg  # Change this import
 from isaaclab.utils import configclass
 
 # Define the path to the Yonsoku robot USD model
@@ -44,67 +44,33 @@ class YonsokuBaseCfg(ArticulationCfg):
     # Control mode settings
     dof_control_mode = "position"
     
-    # Define joint actuators
+    # Define actuators using ImplicitActuatorCfg instead of JointActuator
     actuators = {
-        "RF_JOINT1": JointActuator(joint_name="RF_JOINT1"),
-        "RF_JOINT2": JointActuator(joint_name="RF_JOINT2"),
-        "RF_JOINT3": JointActuator(joint_name="RF_JOINT3"),
-        "RB_JOINT1": JointActuator(joint_name="RB_JOINT1"),
-        "RB_JOINT2": JointActuator(joint_name="RB_JOINT2"),
-        "RB_JOINT3": JointActuator(joint_name="RB_JOINT3"),
-        "LB_JOINT1": JointActuator(joint_name="LB_JOINT1"),
-        "LB_JOINT2": JointActuator(joint_name="LB_JOINT2"),
-        "LB_JOINT3": JointActuator(joint_name="LB_JOINT3"),
-        "LF_JOINT1": JointActuator(joint_name="LF_JOINT1"),
-        "LF_JOINT2": JointActuator(joint_name="LF_JOINT2"),
-        "LF_JOINT3": JointActuator(joint_name="LF_JOINT3"),
+        "rf_actuators": ImplicitActuatorCfg(
+            joint_names_expr=["RF_JOINT[1-3]"],
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
+        "rb_actuators": ImplicitActuatorCfg(
+            joint_names_expr=["RB_JOINT[1-3]"],
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
+        "lb_actuators": ImplicitActuatorCfg(
+            joint_names_expr=["LB_JOINT[1-3]"],
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
+        "lf_actuators": ImplicitActuatorCfg(
+            joint_names_expr=["LF_JOINT[1-3]"],
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        )
     }
     
-    # Set stiffness and damping
-    dof_stiffness = {
-        "RF_JOINT1": 2000.0,
-        "RF_JOINT2": 1000.0,
-        "RF_JOINT3": 1500.0,
-        "RB_JOINT1": 2000.0,
-        "RB_JOINT2": 1000.0,
-        "RB_JOINT3": 1500.0,
-        "LB_JOINT1": 2000.0,
-        "LB_JOINT2": 1000.0,
-        "LB_JOINT3": 1500.0,
-        "LF_JOINT1": 2000.0,
-        "LF_JOINT2": 1000.0,
-        "LF_JOINT3": 1500.0,
-    }
-    
-    dof_damping = {
-        "RF_JOINT1": 20.1,
-        "RF_JOINT2": 20.1,
-        "RF_JOINT3": 20.1,
-        "RB_JOINT1": 20.1,
-        "RB_JOINT2": 20.1,
-        "RB_JOINT3": 20.1,
-        "LB_JOINT1": 20.1,
-        "LB_JOINT2": 20.1,
-        "LB_JOINT3": 20.1,
-        "LF_JOINT1": 20.1,
-        "LF_JOINT2": 20.1,
-        "LF_JOINT3": 20.1,
-    }
-    
-    dof_max_efforts = {
-        "RF_JOINT1": 2000.0,
-        "RF_JOINT2": 1000.0,
-        "RF_JOINT3": 1500.0,
-        "RB_JOINT1": 2000.0,
-        "RB_JOINT2": 1000.0,
-        "RB_JOINT3": 1500.0,
-        "LB_JOINT1": 2000.0,
-        "LB_JOINT2": 1000.0,
-        "LB_JOINT3": 1500.0,
-        "LF_JOINT1": 2000.0,
-        "LF_JOINT2": 1000.0,
-        "LF_JOINT3": 1500.0,
-    }
-
 # Export the configuration
 YONSOKU_CFG = YonsokuBaseCfg()
