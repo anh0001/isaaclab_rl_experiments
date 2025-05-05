@@ -6,8 +6,8 @@
 """Yonsoku quadruped robot configuration for Isaac Lab."""
 
 from isaaclab.assets import ArticulationCfg
+from isaaclab.assets.articulation import JointActuator
 from isaaclab.utils import configclass
-import os
 
 # Define the path to the Yonsoku robot USD model
 _USD_PATH = "source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd"
@@ -17,7 +17,6 @@ class YonsokuBaseCfg(ArticulationCfg):
     """Base configuration for the Yonsoku quadruped robot."""
     
     # Required properties
-    # Update these based on your URDF joint names
     usd_path = _USD_PATH
     prim_path = "/World/envs/env_.*/Robot"  # Template for environment replication
     name = "yonsoku"
@@ -29,37 +28,39 @@ class YonsokuBaseCfg(ArticulationCfg):
     # Define joint properties based on your URDF
     default_joint_positions = {
         "RF_JOINT1": 0.0,
-        "RF_JOINT2": 90.0,  # Convert to radians in actual code
-        "RF_JOINT3": -165.0,  # Convert to radians in actual code
+        "RF_JOINT2": 90.0,
+        "RF_JOINT3": -165.0,
         "RB_JOINT1": 0.0,
-        "RB_JOINT2": -90.0,  # Convert to radians in actual code
-        "RB_JOINT3": 165.0,  # Convert to radians in actual code
+        "RB_JOINT2": -90.0,
+        "RB_JOINT3": 165.0,
         "LB_JOINT1": 0.0,
-        "LB_JOINT2": -90.0,  # Convert to radians in actual code
-        "LB_JOINT3": 165.0,  # Convert to radians in actual code
+        "LB_JOINT2": -90.0,
+        "LB_JOINT3": 165.0,
         "LF_JOINT1": 0.0,
-        "LF_JOINT2": 90.0,  # Convert to radians in actual code
-        "LF_JOINT3": -165.0,  # Convert to radians in actual code
+        "LF_JOINT2": 90.0,
+        "LF_JOINT3": -165.0,
     }
     
     # Control mode settings
-    dof_control_mode = "position"  # or "velocity" or "effort" based on your needs
-    dof_max_efforts = {
-        "RF_JOINT1": 2000.0,
-        "RF_JOINT2": 1000.0,
-        "RF_JOINT3": 1500.0,
-        "RB_JOINT1": 2000.0,
-        "RB_JOINT2": 1000.0,
-        "RB_JOINT3": 1500.0,
-        "LB_JOINT1": 2000.0,
-        "LB_JOINT2": 1000.0,
-        "LB_JOINT3": 1500.0,
-        "LF_JOINT1": 2000.0,
-        "LF_JOINT2": 1000.0,
-        "LF_JOINT3": 1500.0,
+    dof_control_mode = "position"
+    
+    # Define joint actuators
+    actuators = {
+        "RF_JOINT1": JointActuator(joint_name="RF_JOINT1"),
+        "RF_JOINT2": JointActuator(joint_name="RF_JOINT2"),
+        "RF_JOINT3": JointActuator(joint_name="RF_JOINT3"),
+        "RB_JOINT1": JointActuator(joint_name="RB_JOINT1"),
+        "RB_JOINT2": JointActuator(joint_name="RB_JOINT2"),
+        "RB_JOINT3": JointActuator(joint_name="RB_JOINT3"),
+        "LB_JOINT1": JointActuator(joint_name="LB_JOINT1"),
+        "LB_JOINT2": JointActuator(joint_name="LB_JOINT2"),
+        "LB_JOINT3": JointActuator(joint_name="LB_JOINT3"),
+        "LF_JOINT1": JointActuator(joint_name="LF_JOINT1"),
+        "LF_JOINT2": JointActuator(joint_name="LF_JOINT2"),
+        "LF_JOINT3": JointActuator(joint_name="LF_JOINT3"),
     }
     
-    # Set stiffness and damping similar to your controllers.yaml file
+    # Set stiffness and damping
     dof_stiffness = {
         "RF_JOINT1": 2000.0,
         "RF_JOINT2": 1000.0,
@@ -88,6 +89,21 @@ class YonsokuBaseCfg(ArticulationCfg):
         "LF_JOINT1": 20.1,
         "LF_JOINT2": 20.1,
         "LF_JOINT3": 20.1,
+    }
+    
+    dof_max_efforts = {
+        "RF_JOINT1": 2000.0,
+        "RF_JOINT2": 1000.0,
+        "RF_JOINT3": 1500.0,
+        "RB_JOINT1": 2000.0,
+        "RB_JOINT2": 1000.0,
+        "RB_JOINT3": 1500.0,
+        "LB_JOINT1": 2000.0,
+        "LB_JOINT2": 1000.0,
+        "LB_JOINT3": 1500.0,
+        "LF_JOINT1": 2000.0,
+        "LF_JOINT2": 1000.0,
+        "LF_JOINT3": 1500.0,
     }
 
 # Export the configuration
