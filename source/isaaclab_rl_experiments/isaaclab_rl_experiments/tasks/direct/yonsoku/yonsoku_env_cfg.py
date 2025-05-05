@@ -27,7 +27,7 @@ class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     robot_cfg = YONSOKU_CFG
     
     # Simulation setup
-    sim = SimulationCfg(dt=1/120.0, substeps=2, render_interval=decimation)
+    sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     
     # Scene configuration
     scene = InteractiveSceneCfg(num_envs=4096, env_spacing=5.0, replicate_physics=True)

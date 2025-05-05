@@ -7,7 +7,6 @@
 
 from isaaclab.assets import ArticulationCfg
 from isaaclab.utils import configclass
-from omni.isaac.core.utils.nucleus import get_assets_root_path
 import os
 
 # Define the path to the Yonsoku robot USD model

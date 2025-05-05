@@ -244,7 +244,7 @@ class YourRobotEnvCfg(DirectRLEnvCfg):
     robot_cfg = YOUR_ROBOT_CFG
     
     # Simulation setup
-    sim = SimulationCfg(dt=1/120.0, substeps=2, render_interval=decimation)
+    sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     
     # Scene configuration
     scene = InteractiveSceneCfg(num_envs=2048, env_spacing=4.0, replicate_physics=True)
