@@ -13,7 +13,7 @@ from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
 
-from isaaclab_rl_experiments.isaaclab_rl_experiments.assets.robots.yonsoku.yonsoku import YONSOKU_CFG
+from isaaclab_rl_experiments.assets.robots.yonsoku.robot_config import YONSOKU_CFG
 
 @configclass
 class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
