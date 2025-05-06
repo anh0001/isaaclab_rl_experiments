@@ -9,10 +9,30 @@ from isaaclab.assets import ArticulationCfg
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.sim.spawners.from_files import UsdFileCfg
 from isaaclab.utils import configclass
-from isaaclab.utils.types import InitialStateConfig
 
 # Define the path to the Yonsoku robot USD model
 _USD_PATH = "/home/dl-box/codes/anhar/isaaclab_rl_experiments/source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd"
+
+# Create a simple configuration class for the initial state
+@configclass
+class InitState:
+    joint_pos = {
+        "RF_JOINT1": 0.0,
+        "RF_JOINT2": 1.57,  # 90 degrees in radians
+        "RF_JOINT3": -2.88,  # -165 degrees in radians
+        "RB_JOINT1": 0.0,
+        "RB_JOINT2": -1.57,  # -90 degrees in radians
+        "RB_JOINT3": 2.88,   # 165 degrees in radians
+        "LB_JOINT1": 0.0,
+        "LB_JOINT2": -1.57,  # -90 degrees in radians
+        "LB_JOINT3": 2.88,   # 165 degrees in radians
+        "LF_JOINT1": 0.0,
+        "LF_JOINT2": 1.57,   # 90 degrees in radians
+        "LF_JOINT3": -2.88,  # -165 degrees in radians
+    }
+    joint_vel = {}
+    pos = [0.0, 0.0, 0.52]  # Starting height above ground
+    quat = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
 
 # Create the configuration using the standard pattern
 YONSOKU_CFG = ArticulationCfg(
@@ -59,24 +79,6 @@ YONSOKU_CFG = ArticulationCfg(
             effort_limit_sim=2000.0
         )
     },
-    # Define initial joint positions and robot state
-    init_state=InitialStateConfig(
-        joint_pos={
-            "RF_JOINT1": 0.0,
-            "RF_JOINT2": 1.57,  # 90 degrees in radians
-            "RF_JOINT3": -2.88,  # -165 degrees in radians
-            "RB_JOINT1": 0.0,
-            "RB_JOINT2": -1.57,  # -90 degrees in radians
-            "RB_JOINT3": 2.88,   # 165 degrees in radians
-            "LB_JOINT1": 0.0,
-            "LB_JOINT2": -1.57,  # -90 degrees in radians
-            "LB_JOINT3": 2.88,   # 165 degrees in radians
-            "LF_JOINT1": 0.0,
-            "LF_JOINT2": 1.57,   # 90 degrees in radians
-            "LF_JOINT3": -2.88,  # -165 degrees in radians
-        },
-        joint_vel={},
-        pos=[0.0, 0.0, 0.52],  # Starting height above ground
-        quat=[1.0, 0.0, 0.0, 0.0],  # Quaternion [w, x, y, z]
-    ),
+    # Use our custom InitState class
+    init_state=InitState(),
 )
