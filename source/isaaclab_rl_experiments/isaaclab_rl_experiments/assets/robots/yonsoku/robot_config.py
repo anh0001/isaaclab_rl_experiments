@@ -9,6 +9,7 @@ from isaaclab.assets import ArticulationCfg
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.sim.spawners.from_files import UsdFileCfg
 from isaaclab.utils import configclass
+from isaaclab.sim.schemas import RigidBodyPropertiesCfg, ArticulationRootPropertiesCfg
 
 # Define the path to the Yonsoku robot USD model
 _USD_PATH = "/home/dl-box/codes/anhar/isaaclab_rl_experiments/source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd"
@@ -40,16 +41,16 @@ YONSOKU_CFG = ArticulationCfg(
     # Use spawn with UsdFileCfg to properly load the USD file
     spawn=UsdFileCfg(
         usd_path=_USD_PATH,
-        rigid_props={
-            "enable_gyroscopic_forces": True,
-            "max_depenetration_velocity": 100.0,
-        },
-        articulation_props={
-            "solver_position_iteration_count": 4,
-            "solver_velocity_iteration_count": 0,
-            "sleep_threshold": 0.005,
-            "stabilization_threshold": 0.001,
-        },
+        rigid_props=RigidBodyPropertiesCfg(
+            enable_gyroscopic_forces=True,
+            max_depenetration_velocity=100.0,
+        ),
+        articulation_props=ArticulationRootPropertiesCfg(
+            solver_position_iteration_count=4,
+            solver_velocity_iteration_count=0,
+            sleep_threshold=0.005,
+            stabilization_threshold=0.001,
+        ),
         activate_contact_sensors=True,
     ),
     # Define actuators with appropriate configs
