@@ -1,11 +1,13 @@
 # test_yonsoku_usd.py
 import os
 from isaaclab.app import AppLauncher
-import omni.usd
 
 # Launch Isaac Sim
 app_launcher = AppLauncher(headless=False)  # Set to False to see the viewer
 simulation_app = app_launcher.app
+
+# Only now import Omniverse USD
+import omni.usd
 
 # Path to the Yonsoku robot USD file
 usd_path = os.path.abspath("source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd")
@@ -23,7 +25,7 @@ if not os.path.exists(usd_path) and os.path.exists(urdf_path):
     from omni.isaac.urdf import _urdf
     
     # Create a new USD stage
-    stage = omni.usd.get_context().create_new_stage()
+    stage = omni.usd.get_context().new_stage()
     
     # Import URDF
     import_config = _urdf.ImportConfig()
@@ -39,7 +41,7 @@ if not os.path.exists(usd_path) and os.path.exists(urdf_path):
     if result:
         print(f"Successfully imported URDF to prim path: {prim_path}")
         # Save the USD file
-        omni.usd.get_context().save_as_stage(usd_path, None)
+        omni.usd.get_context().save_stage_as(usd_path)
         print(f"Saved USD file to: {usd_path}")
     else:
         print("Failed to import URDF")
@@ -47,7 +49,7 @@ else:
     # If USD file exists, try to load it and print the prim path
     if os.path.exists(usd_path):
         # Create a new stage
-        stage = omni.usd.get_context().create_new_stage()
+        stage = omni.usd.get_context().new_stage()
         
         # Add a reference to the USD file
         success = omni.usd.get_context().add_reference_to_stage(usd_path, "/yonsoku_robot")
