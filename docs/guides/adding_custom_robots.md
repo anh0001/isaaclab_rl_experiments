@@ -174,6 +174,7 @@ _USD_PATH = "source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robot
 
 # Create the articulation configuration
 YOUR_ROBOT_CFG = ArticulationCfg(
+    prim_path="/World/envs/env_.*/YOUR_ROBOT_PRIM_NAME",  # example is /World/envs/env_.*/yonsoku_robot
     spawn=UsdFileCfg(
         usd_path=_USD_PATH,
         rigid_props={
@@ -189,22 +190,49 @@ YOUR_ROBOT_CFG = ArticulationCfg(
         activate_contact_sensors=True,
     ),
     actuators={
-        "LEG_JOINT[1-3]": ImplicitActuatorCfg(
+        "RF_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="RF_JOINT[1-3]",
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
-        # Repeat for each leg pattern: RB_JOINT[1-3], LB_JOINT[1-3], LF_JOINT[1-3]
+        "RB_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="RB_JOINT[1-3]",
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
+        "LB_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="LB_JOINT[1-3]",
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
+        "LF_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="LF_JOINT[1-3]",
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
     },
     init_state={
         "joint_pos": {
-            "JOINT1": 0.0,
-            "JOINT2": 1.57,  # example in radians
-            # Add all initial joint positions here
+            "RF_JOINT1": 0.0,
+            "RF_JOINT2": 1.57,
+            "RF_JOINT3": -2.88,
+            "RB_JOINT1": 0.0,
+            "RB_JOINT2": -1.57,
+            "RB_JOINT3": 2.88,
+            "LB_JOINT1": 0.0,
+            "LB_JOINT2": -1.57,
+            "LB_JOINT3": 2.88,
+            "LF_JOINT1": 0.0,
+            "LF_JOINT2": 1.57,
+            "LF_JOINT3": -2.88,
         },
-        "joint_vel": {},  # specify initial velocities if needed
-        "pos": [0.0, 0.0, 0.5],  # starting base position [x, y, z]
-        "quat": [1.0, 0.0, 0.0, 0.0],  # starting base orientation [w, x, y, z]
+        "joint_vel": {},
+        "pos": [0.0, 0.0, 0.52],
+        "quat": [1.0, 0.0, 0.0, 0.0],
     },
 )
 ```

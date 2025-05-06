@@ -15,6 +15,7 @@ _USD_PATH = "/home/dl-box/codes/anhar/isaaclab_rl_experiments/source/isaaclab_rl
 
 # Create the configuration using the standard pattern
 YONSOKU_CFG = ArticulationCfg(
+    prim_path="/World/envs/env_.*/yonsoku_robot",
     # Use spawn with UsdFileCfg to properly load the USD file
     spawn=UsdFileCfg(
         usd_path=_USD_PATH,
@@ -33,21 +34,25 @@ YONSOKU_CFG = ArticulationCfg(
     # Define actuators with appropriate configs
     actuators={
         "RF_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="RF_JOINT[1-3]",
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
         "RB_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="RB_JOINT[1-3]",
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
         "LB_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="LB_JOINT[1-3]",
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
         "LF_JOINT[1-3]": ImplicitActuatorCfg(
+            joint_names_expr="LF_JOINT[1-3]",
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
