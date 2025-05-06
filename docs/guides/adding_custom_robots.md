@@ -96,11 +96,39 @@ Isaac Lab provides a built-in tool for converting URDF files to USD format:
 
 After conversion, check that the USD file has been created correctly:
 
-1. The file exists at the specified output path
-2. The joint structure matches your URDF
-3. The mesh assets are properly referenced
+1. The file exists at the specified output path  
+2. The joint structure matches your URDF  
+3. The mesh assets are properly referenced  
 
 For visual inspection, you can open the USD file in Isaac Sim's UI.
+
+### Checking USD with usdview
+
+To inspect your USD file in `usdview`, first install it via NVIDIA Omniverse.
+
+Extract the binary packages if necessary and launch:
+```bash
+# Run the usdview GUI script on your USD model
+./usdview_gui.sh /home/dl-box/codes/anhar/isaaclab_rl_experiments/assets/robots/YOUR_ROBOT_NAME/robot.usd
+```
+![USDView Screenshot](../images/usdview_screenshot.png)
+
+### Running the Prim Listing Script
+
+You can also programmatically list all prims in the stage with a simple Python script. Create `scripts/test_yonsoku_usd.py` (if not already present) and run:
+```bash
+python scripts/test_yonsoku_usd.py /path/to/yonsoku_robot.usd
+```
+Example output:
+```
+Available prims in the stage:
+- /yonsoku_robot
+- /yonsoku_robot/Looks
+- /yonsoku_robot/Looks/material_Black
+- /yonsoku_robot/Looks/material_Black/Shader
+...
+- /Render/Vars/LdrColor
+```
 
 ### Troubleshooting Conversion Issues
 
