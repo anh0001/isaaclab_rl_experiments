@@ -81,8 +81,8 @@ class YonsokuEnv(DirectRLEnv):
     def _setup_scene(self):
         """Set up the simulation scene."""
         # Create robot
-        self.robot = Articulation(self.cfg.robot_cfg)
-        
+        self.robot = Articulation(self.cfg.robot_cfg.replace(prim_path="/yonsoku_robot"))
+
         # Add ground plane
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
         

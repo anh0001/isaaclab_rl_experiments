@@ -10,7 +10,7 @@ from isaaclab.actuators import ImplicitActuatorCfg  # Change this import
 from isaaclab.utils import configclass
 
 # Define the path to the Yonsoku robot USD model
-_USD_PATH = "source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd"
+_USD_PATH = "/home/dl-box/codes/anhar/isaaclab_rl_experiments/source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd"
 
 @configclass
 class YonsokuBaseCfg(ArticulationCfg):
@@ -18,7 +18,8 @@ class YonsokuBaseCfg(ArticulationCfg):
     
     # Required properties
     usd_path = _USD_PATH
-    prim_path = "/World/envs/env_.*/Robot"  # Template for environment replication
+    # prim_path = "/World/envs/env_.*/yonsoku_robot"
+    prim_path = "/yonsoku_robot"
     name = "yonsoku"
     
     # Default robot state
