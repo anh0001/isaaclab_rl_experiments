@@ -1,13 +1,16 @@
 # test_yonsoku_usd.py
 import os
+
+# Launch Isaac Sim Simulator first
 from isaaclab.app import AppLauncher
 
-# Launch Isaac Sim
-app_launcher = AppLauncher(headless=False)  # Set to False to see the viewer
+# Initialize the app
+app_launcher = AppLauncher(headless=False)
 simulation_app = app_launcher.app
 
-# Only now import Omniverse USD
+# Import modules after app is launched
 import omni.usd
+from pxr import Usd, UsdGeom, Sdf
 
 # Path to the Yonsoku robot USD file
 usd_path = os.path.abspath("source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd")
@@ -21,7 +24,8 @@ print(f"URDF exists: {os.path.exists(urdf_path)}")
 # If USD doesn't exist but URDF does, we need to convert it
 if not os.path.exists(usd_path) and os.path.exists(urdf_path):
     print("USD file doesn't exist. We need to convert the URDF to USD first.")
-    from pxr import Usd, UsdGeom
+    
+    # Import URDF modules
     from omni.isaac.urdf import _urdf
     
     # Create a new USD stage
@@ -51,22 +55,29 @@ else:
         # Create a new stage
         stage = omni.usd.get_context().new_stage()
         
-        # Add a reference to the USD file
-        success = omni.usd.get_context().add_reference_to_stage(usd_path, "/yonsoku_robot")
+        # Get the stage
+        stage = omni.usd.get_context().get_stage()
         
-        if success:
-            print("Successfully referenced USD file")
-            # Print all available prims
-            stage = omni.usd.get_context().get_stage()
-            print("Available prims in the stage:")
-            for prim in stage.Traverse():
-                print(f"  - {prim.GetPath()}")
-        else:
-            print("Failed to reference USD file")
+        # Create the target prim if it doesn't exist
+        if not stage.GetPrimAtPath("/yonsoku_robot"):
+            stage.DefinePrim("/yonsoku_robot", "Xform")
+        
+        # Add a reference to the prim
+        prim = stage.GetPrimAtPath("/yonsoku_robot")
+        prim.GetReferences().AddReference(usd_path)
+        
+        print("Successfully referenced USD file")
+        # Print all available prims
+        print("Available prims in the stage:")
+        for prim in stage.Traverse():
+            print(f"  - {prim.GetPath()}")
+    else:
+        print("Failed to reference USD file")
 
 # Keep the app running so we can see the result
-while simulation_app.is_running():
-    simulation_app.update()
+import time
+print("Keeping the app running for 10 seconds to view the result...")
+time.sleep(10)
 
 # Close the app
 simulation_app.close()
