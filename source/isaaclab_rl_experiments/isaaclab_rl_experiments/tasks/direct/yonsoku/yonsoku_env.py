@@ -53,7 +53,12 @@ class YonsokuEnv(DirectRLEnv):
         )
         
         # Initialize feet contact buffers
-        self.feet_names = ["RF_FOOT", "RB_FOOT", "LB_FOOT", "LF_FOOT"] # Last link in each leg
+
+        # Last link in each leg
+        # TODO: Check this - it should be the last link in each leg
+        # self.feet_names = ["RF_FOOT", "RB_FOOT", "LB_FOOT", "LF_FOOT"]
+        self.feet_names = ["RF3", "RB3", "LB3", "LF3"]
+
         self.feet_indices = []
         for name in self.feet_names:
             self.feet_indices.append(self.robot.find_bodies(name)[0])
