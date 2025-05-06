@@ -6,72 +6,71 @@
 """Yonsoku quadruped robot configuration for Isaac Lab."""
 
 from isaaclab.assets import ArticulationCfg
-from isaaclab.actuators import ImplicitActuatorCfg  # Change this import
+from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.sim.spawners.from_files import UsdFileCfg
 from isaaclab.utils import configclass
 
 # Define the path to the Yonsoku robot USD model
 _USD_PATH = "/home/dl-box/codes/anhar/isaaclab_rl_experiments/source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/yonsoku/yonsoku_robot.usd"
 
-@configclass
-class YonsokuBaseCfg(ArticulationCfg):
-    """Base configuration for the Yonsoku quadruped robot."""
-    
-    # Required properties
-    usd_path = _USD_PATH
-    # prim_path = "/World/envs/env_.*/yonsoku_robot"
-    prim_path = "/yonsoku_robot"
-    name = "yonsoku"
-    
-    # Default robot state
-    root_position = [0.0, 0.0, 0.52]  # Starting height above ground
-    root_orientation = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
-    
-    # Define joint properties based on your URDF
-    default_joint_positions = {
-        "RF_JOINT1": 0.0,
-        "RF_JOINT2": 90.0,
-        "RF_JOINT3": -165.0,
-        "RB_JOINT1": 0.0,
-        "RB_JOINT2": -90.0,
-        "RB_JOINT3": 165.0,
-        "LB_JOINT1": 0.0,
-        "LB_JOINT2": -90.0,
-        "LB_JOINT3": 165.0,
-        "LF_JOINT1": 0.0,
-        "LF_JOINT2": 90.0,
-        "LF_JOINT3": -165.0,
-    }
-    
-    # Control mode settings
-    dof_control_mode = "position"
-    
-    # Define actuators using ImplicitActuatorCfg instead of JointActuator
-    actuators = {
-        "rf_actuators": ImplicitActuatorCfg(
-            joint_names_expr=["RF_JOINT[1-3]"],
+# Create the configuration using the standard pattern
+YONSOKU_CFG = ArticulationCfg(
+    # Use spawn with UsdFileCfg to properly load the USD file
+    spawn=UsdFileCfg(
+        usd_path=_USD_PATH,
+        rigid_props={
+            "enable_gyroscopic_forces": True,
+            "max_depenetration_velocity": 100.0,
+        },
+        articulation_props={
+            "solver_position_iteration_count": 4,
+            "solver_velocity_iteration_count": 0,
+            "sleep_threshold": 0.005,
+            "stabilization_threshold": 0.001,
+        },
+        activate_contact_sensors=True,
+    ),
+    # Define actuators with appropriate configs
+    actuators={
+        "RF_JOINT[1-3]": ImplicitActuatorCfg(
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
-        "rb_actuators": ImplicitActuatorCfg(
-            joint_names_expr=["RB_JOINT[1-3]"],
+        "RB_JOINT[1-3]": ImplicitActuatorCfg(
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
-        "lb_actuators": ImplicitActuatorCfg(
-            joint_names_expr=["LB_JOINT[1-3]"],
+        "LB_JOINT[1-3]": ImplicitActuatorCfg(
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
-        "lf_actuators": ImplicitActuatorCfg(
-            joint_names_expr=["LF_JOINT[1-3]"],
+        "LF_JOINT[1-3]": ImplicitActuatorCfg(
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         )
-    }
-    
-# Export the configuration
-YONSOKU_CFG = YonsokuBaseCfg()
+    },
+    # Define initial joint positions and robot state
+    init_state={
+        "joint_pos": {
+            "RF_JOINT1": 0.0,
+            "RF_JOINT2": 1.57,  # 90 degrees in radians
+            "RF_JOINT3": -2.88,  # -165 degrees in radians
+            "RB_JOINT1": 0.0,
+            "RB_JOINT2": -1.57,  # -90 degrees in radians
+            "RB_JOINT3": 2.88,   # 165 degrees in radians
+            "LB_JOINT1": 0.0,
+            "LB_JOINT2": -1.57,  # -90 degrees in radians
+            "LB_JOINT3": 2.88,   # 165 degrees in radians
+            "LF_JOINT1": 0.0,
+            "LF_JOINT2": 1.57,   # 90 degrees in radians
+            "LF_JOINT3": -2.88,  # -165 degrees in radians
+        },
+        "joint_vel": {},
+        "pos": [0.0, 0.0, 0.52],  # Starting height above ground
+        "quat": [1.0, 0.0, 0.0, 0.0],  # Quaternion [w, x, y, z]
+    },
+)
