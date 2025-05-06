@@ -34,6 +34,8 @@ class InitState:
     joint_vel = {}
     pos = [0.0, 0.0, 0.52]  # Starting height above ground
     rot = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
+    lin_vel = [0.0, 0.0, 0.0]  # Linear velocity
+    ang_vel = [0.0, 0.0, 0.0]  # Angular velocity
 
 # Create the configuration using the standard pattern
 YONSOKU_CFG = ArticulationCfg(

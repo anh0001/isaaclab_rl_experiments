@@ -69,14 +69,14 @@ class YonsokuEnv(DirectRLEnv):
         # Store default joint positions
         self.default_dof_pos = self.robot.data.default_joint_pos.clone()
         
-        # Save joint ranges
+        # Save joint ranges - FIXED: avoid using dof_names attribute
         self.joint_limits = {}
         for i, name in enumerate(self.robot.data.joint_names):
-            if name in self.robot.dof_names:
-                dof_idx = self.robot.dof_names.index(name)
+            # Check if this joint has limits (it's a valid DOF)
+            if i < len(self.robot.data.joint_limits_lower[0]):
                 self.joint_limits[name] = {
-                    "lower": self.robot.data.joint_limits_lower[0, dof_idx].item(),
-                    "upper": self.robot.data.joint_limits_upper[0, dof_idx].item(),
+                    "lower": self.robot.data.joint_limits_lower[0, i].item(),
+                    "upper": self.robot.data.joint_limits_upper[0, i].item(),
                 }
         
         # Save previous actions
