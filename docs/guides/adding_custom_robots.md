@@ -172,9 +172,31 @@ from isaaclab.utils import configclass
 # Define path to your robot USD model
 _USD_PATH = "source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/YOUR_ROBOT_NAME/robot.usd"
 
+# Create a simple configuration class for the initial state
+@configclass
+class InitState:
+    joint_pos = {
+        "RF_JOINT1": 0.0,
+        "RF_JOINT2": 1.57,  # 90 degrees in radians
+        "RF_JOINT3": -2.88,  # -165 degrees in radians
+        "RB_JOINT1": 0.0,
+        "RB_JOINT2": -1.57,  # -90 degrees in radians
+        "RB_JOINT3": 2.88,   # 165 degrees in radians
+        "LB_JOINT1": 0.0,
+        "LB_JOINT2": -1.57,  # -90 degrees in radians
+        "LB_JOINT3": 2.88,   # 165 degrees in radians
+        "LF_JOINT1": 0.0,
+        "LF_JOINT2": 1.57,   # 90 degrees in radians
+        "LF_JOINT3": -2.88,  # -165 degrees in radians
+    }
+    joint_vel = {}
+    pos = [0.0, 0.0, 0.52]  # Starting height above ground
+    rot = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
+
 # Create the articulation configuration
 YOUR_ROBOT_CFG = ArticulationCfg(
     prim_path="/World/envs/env_.*/YOUR_ROBOT_PRIM_NAME",  # example is /World/envs/env_.*/yonsoku_robot
+    # Use spawn with UsdFileCfg to properly load the USD file
     spawn=UsdFileCfg(
         usd_path=_USD_PATH,
         rigid_props={
@@ -189,6 +211,7 @@ YOUR_ROBOT_CFG = ArticulationCfg(
         },
         activate_contact_sensors=True,
     ),
+    # Define actuators with appropriate configs
     actuators={
         "RF_JOINT[1-3]": ImplicitActuatorCfg(
             joint_names_expr="RF_JOINT[1-3]",
@@ -215,25 +238,8 @@ YOUR_ROBOT_CFG = ArticulationCfg(
             effort_limit_sim=2000.0
         ),
     },
-    init_state={
-        "joint_pos": {
-            "RF_JOINT1": 0.0,
-            "RF_JOINT2": 1.57,
-            "RF_JOINT3": -2.88,
-            "RB_JOINT1": 0.0,
-            "RB_JOINT2": -1.57,
-            "RB_JOINT3": 2.88,
-            "LB_JOINT1": 0.0,
-            "LB_JOINT2": -1.57,
-            "LB_JOINT3": 2.88,
-            "LF_JOINT1": 0.0,
-            "LF_JOINT2": 1.57,
-            "LF_JOINT3": -2.88,
-        },
-        "joint_vel": {},
-        "pos": [0.0, 0.0, 0.52],
-        "quat": [1.0, 0.0, 0.0, 0.0],
-    },
+    # Use our custom InitState class
+    init_state=InitState(),
 )
 ```
 
@@ -371,7 +377,6 @@ class YourRobotEnv(DirectRLEnv):
     def _setup_scene(self):
         """Set up the simulation scene."""
         # Create robot
-        > **Note:** Replace `<ROBOT_PRIM_NAME>` with the actual prim name of your robot in the USD file (e.g., `yonsoku_robot`).
         self.robot = Articulation(
             self.cfg.robot_cfg.replace(
                 prim_path="/World/envs/env_.*/<ROBOT_PRIM_NAME>"

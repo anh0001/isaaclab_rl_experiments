@@ -32,7 +32,7 @@ class InitState:
     }
     joint_vel = {}
     pos = [0.0, 0.0, 0.52]  # Starting height above ground
-    quat = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
+    rot = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
 
 # Create the configuration using the standard pattern
 YONSOKU_CFG = ArticulationCfg(
