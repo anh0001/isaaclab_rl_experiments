@@ -130,6 +130,8 @@ Available prims in the stage:
 - /Render/Vars/LdrColor
 ```
 
+This indicates the prim path name is /yonsoku_robot
+
 ### Troubleshooting Conversion Issues
 
 Common issues during conversion include:
@@ -162,64 +164,49 @@ touch source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/YOUR_
 Add the following content, adapting it to your robot's specifications:
 
 ```python
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
-# All rights reserved.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
-"""Robot configuration for Isaac Lab."""
-
-import math
 from isaaclab.assets import ArticulationCfg
+from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.sim.spawners.from_files import UsdFileCfg
 from isaaclab.utils import configclass
 
-# Define the path to the robot USD model
+# Define path to your robot USD model
 _USD_PATH = "source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/YOUR_ROBOT_NAME/robot.usd"
 
-@configclass
-class YourRobotBaseCfg(ArticulationCfg):
-    """Base configuration for your robot."""
-    
-    # Required properties
-    usd_path = _USD_PATH
-    prim_path = "/World/envs/env_.*/Robot"  # Template for environment replication
-    name = "your_robot_name"
-    
-    # Default robot state
-    root_position = [0.0, 0.0, 0.5]  # Starting height above ground
-    root_orientation = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
-    
-    # Define joint properties based on your URDF
-    default_joint_positions = {
-        "joint1": 0.0,
-        "joint2": math.radians(45.0),
-        # Add all the joints your robot has
-    }
-    
-    # Control mode settings
-    dof_control_mode = "position"  # or "velocity" or "effort"
-    
-    # Joint properties
-    dof_max_efforts = {
-        "joint1": 100.0,
-        "joint2": 100.0,
-        # Add all the joints your robot has
-    }
-    
-    dof_stiffness = {
-        "joint1": 100.0,
-        "joint2": 100.0,
-        # Add all the joints your robot has
-    }
-    
-    dof_damping = {
-        "joint1": 1.0,
-        "joint2": 1.0,
-        # Add all the joints your robot has
-    }
-
-# Export the configuration
-YOUR_ROBOT_CFG = YourRobotBaseCfg()
+# Create the articulation configuration
+YOUR_ROBOT_CFG = ArticulationCfg(
+    spawn=UsdFileCfg(
+        usd_path=_USD_PATH,
+        rigid_props={
+            "enable_gyroscopic_forces": True,
+            "max_depenetration_velocity": 100.0,
+        },
+        articulation_props={
+            "solver_position_iteration_count": 4,
+            "solver_velocity_iteration_count": 0,
+            "sleep_threshold": 0.005,
+            "stabilization_threshold": 0.001,
+        },
+        activate_contact_sensors=True,
+    ),
+    actuators={
+        "LEG_JOINT[1-3]": ImplicitActuatorCfg(
+            stiffness=2000.0,
+            damping=20.1,
+            effort_limit_sim=2000.0
+        ),
+        # Repeat for each leg pattern: RB_JOINT[1-3], LB_JOINT[1-3], LF_JOINT[1-3]
+    },
+    init_state={
+        "joint_pos": {
+            "JOINT1": 0.0,
+            "JOINT2": 1.57,  # example in radians
+            # Add all initial joint positions here
+        },
+        "joint_vel": {},  # specify initial velocities if needed
+        "pos": [0.0, 0.0, 0.5],  # starting base position [x, y, z]
+        "quat": [1.0, 0.0, 0.0, 0.0],  # starting base orientation [w, x, y, z]
+    },
+)
 ```
 
 ### Considerations for Robot Configuration
@@ -356,7 +343,12 @@ class YourRobotEnv(DirectRLEnv):
     def _setup_scene(self):
         """Set up the simulation scene."""
         # Create robot
-        self.robot = Articulation(self.cfg.robot_cfg)
+        > **Note:** Replace `<ROBOT_PRIM_NAME>` with the actual prim name of your robot in the USD file (e.g., `yonsoku_robot`).
+        self.robot = Articulation(
+            self.cfg.robot_cfg.replace(
+                prim_path="/World/envs/env_.*/<ROBOT_PRIM_NAME>"
+            )
+        )
         
         # Add ground plane
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
