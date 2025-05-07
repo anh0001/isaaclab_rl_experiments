@@ -122,12 +122,86 @@ python scripts/test_yonsoku_usd.py /path/to/yonsoku_robot.usd
 Example output:
 ```
 Available prims in the stage:
-- /yonsoku_robot
-- /yonsoku_robot/Looks
-- /yonsoku_robot/Looks/material_Black
-- /yonsoku_robot/Looks/material_Black/Shader
-...
-- /Render/Vars/LdrColor
+  - /yonsoku_robot
+  - /yonsoku_robot/Looks
+  - /yonsoku_robot/Looks/material_Black
+  - /yonsoku_robot/Looks/material_Black/Shader
+  - /yonsoku_robot/Looks/material_White
+  - /yonsoku_robot/Looks/material_White/Shader
+  - /yonsoku_robot/Looks/DefaultMaterial
+  - /yonsoku_robot/Looks/DefaultMaterial/DefaultMaterial
+  - /yonsoku_robot/Looks/DefaultMaterial_0
+  - /yonsoku_robot/Looks/DefaultMaterial_0/DefaultMaterial
+  - /yonsoku_robot/Looks/DefaultMaterial_1
+  - /yonsoku_robot/Looks/DefaultMaterial_1/DefaultMaterial
+  - /yonsoku_robot/joints
+  - /yonsoku_robot/joints/LB_JOINT1
+  - /yonsoku_robot/joints/LB_JOINT2
+  - /yonsoku_robot/joints/LB_JOINT3
+  - /yonsoku_robot/joints/LF_JOINT1
+  - /yonsoku_robot/joints/LF_JOINT2
+  - /yonsoku_robot/joints/LF_JOINT3
+  - /yonsoku_robot/joints/RB_JOINT1
+  - /yonsoku_robot/joints/RB_JOINT2
+  - /yonsoku_robot/joints/RB_JOINT3
+  - /yonsoku_robot/joints/RF_JOINT1
+  - /yonsoku_robot/joints/RF_JOINT2
+  - /yonsoku_robot/joints/RF_JOINT3
+  - /yonsoku_robot/base_link
+  - /yonsoku_robot/base_link/body_link
+  - /yonsoku_robot/base_link/body_link/LB_FOOT
+  - /yonsoku_robot/base_link/body_link/LF_FOOT
+  - /yonsoku_robot/base_link/body_link/RB_FOOT
+  - /yonsoku_robot/base_link/body_link/RF_FOOT
+  - /yonsoku_robot/base_link/imu_link
+  - /yonsoku_robot/base_link/visuals
+  - /yonsoku_robot/base_link/collisions
+  - /yonsoku_robot/LB1
+  - /yonsoku_robot/LB1/visuals
+  - /yonsoku_robot/LB1/collisions
+  - /yonsoku_robot/LB2
+  - /yonsoku_robot/LB2/visuals
+  - /yonsoku_robot/LB2/collisions
+  - /yonsoku_robot/LB3
+  - /yonsoku_robot/LB3/visuals
+  - /yonsoku_robot/LB3/collisions
+  - /yonsoku_robot/LF1
+  - /yonsoku_robot/LF1/visuals
+  - /yonsoku_robot/LF1/collisions
+  - /yonsoku_robot/LF2
+  - /yonsoku_robot/LF2/visuals
+  - /yonsoku_robot/LF2/collisions
+  - /yonsoku_robot/LF3
+  - /yonsoku_robot/LF3/visuals
+  - /yonsoku_robot/LF3/collisions
+  - /yonsoku_robot/RB1
+  - /yonsoku_robot/RB1/visuals
+  - /yonsoku_robot/RB1/collisions
+  - /yonsoku_robot/RB2
+  - /yonsoku_robot/RB2/visuals
+  - /yonsoku_robot/RB2/collisions
+  - /yonsoku_robot/RB3
+  - /yonsoku_robot/RB3/visuals
+  - /yonsoku_robot/RB3/collisions
+  - /yonsoku_robot/RF1
+  - /yonsoku_robot/RF1/visuals
+  - /yonsoku_robot/RF1/collisions
+  - /yonsoku_robot/RF2
+  - /yonsoku_robot/RF2/visuals
+  - /yonsoku_robot/RF2/collisions
+  - /yonsoku_robot/RF3
+  - /yonsoku_robot/RF3/visuals
+  - /yonsoku_robot/RF3/collisions
+  - /OmniverseKit_Persp
+  - /OmniverseKit_Front
+  - /OmniverseKit_Top
+  - /OmniverseKit_Right
+  - /Render
+  - /Render/OmniverseKit
+  - /Render/OmniverseKit/HydraTextures
+  - /Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0
+  - /Render/Vars
+  - /Render/Vars/LdrColor
 ```
 
 This indicates the prim path name is /yonsoku_robot
