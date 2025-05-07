@@ -69,19 +69,9 @@ class YonsokuEnv(DirectRLEnv):
         # Store default joint positions
         self.default_dof_pos = self.robot.data.default_joint_pos.clone()
         
-        # Save joint ranges - FIXED: avoid using dof_names attribute
-        self.joint_limits = {}
-        for i, name in enumerate(self.robot.data.joint_names):
-            # Check if this joint has limits (it's a valid DOF)
-            if i < len(self.robot.data.joint_limits_lower[0]):
-                self.joint_limits[name] = {
-                    "lower": self.robot.data.joint_limits_lower[0, i].item(),
-                    "upper": self.robot.data.joint_limits_upper[0, i].item(),
-                }
-        
         # Save previous actions
-        self.actions = torch.zeros((self.num_envs, self.num_actions), device=self.device)
-        self.last_actions = torch.zeros((self.num_envs, self.num_actions), device=self.device)
+        self.actions = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
+        self.last_actions = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
     
     def _setup_scene(self):
         """Set up the simulation scene."""
@@ -115,15 +105,14 @@ class YonsokuEnv(DirectRLEnv):
     def _get_observations(self) -> Dict[str, torch.Tensor]:
         """Get observations from the environment."""
         # Get robot state
-        root_states = self.robot.data.root_state
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
         
-        # Extract base position and orientation
-        base_pos = root_states[:, :3]
-        base_quat = root_states[:, 3:7]
-        base_lin_vel = root_states[:, 7:10]
-        base_ang_vel = root_states[:, 10:13]
+        # Access individual components separately
+        base_pos = self.robot.data.root_pos
+        base_quat = self.robot.data.root_quat
+        base_lin_vel = self.robot.data.root_lin_vel
+        base_ang_vel = self.robot.data.root_ang_vel
         
         # Convert base velocity to base frame
         base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
@@ -147,15 +136,14 @@ class YonsokuEnv(DirectRLEnv):
     def _get_rewards(self) -> torch.Tensor:
         """Calculate rewards."""
         # Get robot state
-        root_states = self.robot.data.root_state
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
         
-        # Extract base position and orientation
-        base_pos = root_states[:, :3]
-        base_quat = root_states[:, 3:7]
-        base_lin_vel = root_states[:, 7:10]
-        base_ang_vel = root_states[:, 10:13]
+        # Access individual components separately
+        base_pos = self.robot.data.root_pos
+        base_quat = self.robot.data.root_quat
+        base_lin_vel = self.robot.data.root_lin_vel
+        base_ang_vel = self.robot.data.root_ang_vel
         
         # Convert base velocity to base frame
         base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
@@ -201,12 +189,9 @@ class YonsokuEnv(DirectRLEnv):
     
     def _get_dones(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Determine if episodes should terminate."""
-        # Get robot state
-        root_states = self.robot.data.root_state
-        
-        # Extract base position and orientation
-        base_pos = root_states[:, :3]
-        base_quat = root_states[:, 3:7]
+        # Access individual components separately
+        base_pos = self.robot.data.root_pos
+        base_quat = self.robot.data.root_quat
         
         # Check for termination conditions
         base_height = base_pos[:, 2]
@@ -252,13 +237,16 @@ class YonsokuEnv(DirectRLEnv):
         # Reset air time tracking
         self._reset_feet_air_time(env_ids)
         
-        # Get default root states
-        default_root_state = self.robot.data.default_root_state[env_ids].clone()
+        # Get default root states separately
+        default_root_pos = self.robot.data.default_root_pos[env_ids].clone()
+        default_root_quat = self.robot.data.default_root_quat[env_ids].clone()
+        default_root_lin_vel = torch.zeros_like(default_root_pos)
+        default_root_ang_vel = torch.zeros_like(default_root_pos)
         
         # Apply position noise
         if self.cfg.start_position_noise > 0:
             position_noise = torch.randn((len(env_ids), 3), device=self.device) * self.cfg.start_position_noise
-            default_root_state[:, :3] += position_noise
+            default_root_pos += position_noise
         
         # Apply rotation noise around z-axis (yaw)
         if self.cfg.start_rotation_noise > 0:
@@ -269,10 +257,10 @@ class YonsokuEnv(DirectRLEnv):
             quat_noise[:, 3] = torch.sin(random_yaw / 2)  # z
             
             # Apply rotation to default quaternion - simplified approach
-            default_root_state[:, 3:7] = quat_noise
+            default_root_quat = quat_noise
         
         # Set environment origins
-        default_root_state[:, :3] += self.scene.env_origins[env_ids]
+        default_root_pos += self.scene.env_origins[env_ids]
         
         # Reset joint positions with some noise
         default_joint_pos = self.default_dof_pos[env_ids].clone()
@@ -284,8 +272,14 @@ class YonsokuEnv(DirectRLEnv):
         default_joint_vel = torch.zeros_like(default_joint_pos)
         
         # Write robot state to simulation
-        self.robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
-        self.robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
+        self.robot.write_root_pose_to_sim(
+            torch.cat([default_root_pos, default_root_quat], dim=1), 
+            env_ids
+        )
+        self.robot.write_root_velocity_to_sim(
+            torch.cat([default_root_lin_vel, default_root_ang_vel], dim=1), 
+            env_ids
+        )
         self.robot.write_joint_state_to_sim(default_joint_pos, default_joint_vel, None, env_ids)
     
     def _resample_commands(self, env_ids: Union[torch.Tensor, Sequence[int]]):
