@@ -28,6 +28,9 @@ class YonsokuEnv(DirectRLEnv):
         """Initialize the Yonsoku environment."""
         super().__init__(cfg, render_mode, **kwargs)
         
+        # Add this line to define dt from config
+        self.dt = self.cfg.sim.dt
+        
         # Extract joint indices
         self.dof_indices = {}
         for leg_name, joint_names in self.cfg.leg_joint_names.items():
@@ -101,6 +104,11 @@ class YonsokuEnv(DirectRLEnv):
         
         # Apply joint position targets
         self.robot.set_joint_position_target(scaled_actions, joint_ids=self.all_dof_indices)
+    
+    def _apply_action(self):
+        """Apply the processed actions to the simulation at each physics step."""
+        # Write the joint position targets to the simulation
+        self.robot.write_data_to_sim()
     
     def _get_observations(self) -> Dict[str, torch.Tensor]:
         """Get observations from the environment."""
