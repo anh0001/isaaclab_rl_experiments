@@ -204,7 +204,7 @@ Available prims in the stage:
   - /Render/Vars/LdrColor
 ```
 
-This indicates the prim path name is /yonsoku_robot
+This indicates your robot name is yonsoku_robot.
 
 ### Troubleshooting Conversion Issues
 
@@ -232,85 +232,74 @@ sed -i 's|package://your_package/meshes|/absolute/path/to/meshes|g' your_robot.u
 Create a Python configuration file for your robot:
 
 ```bash
+mkdir -p source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/YOUR_ROBOT_NAME
 touch source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/YOUR_ROBOT_NAME/robot_config.py
 ```
 
 Add the following content, adapting it to your robot's specifications:
 
 ```python
+# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+"""Your robot configuration for Isaac Lab."""
+
 from isaaclab.assets import ArticulationCfg
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.sim.spawners.from_files import UsdFileCfg
 from isaaclab.utils import configclass
+from isaaclab.sim.schemas import RigidBodyPropertiesCfg, ArticulationRootPropertiesCfg
 
 # Define path to your robot USD model
-_USD_PATH = "source/isaaclab_rl_experiments/isaaclab_rl_experiments/assets/robots/YOUR_ROBOT_NAME/robot.usd"
+_USD_PATH = "/path/to/your/robot.usd"
 
 # Create a simple configuration class for the initial state
 @configclass
 class InitState:
     joint_pos = {
+        # Define default joint positions for all joints
+        # Example for a quadruped with 3 joints per leg:
         "RF_JOINT1": 0.0,
         "RF_JOINT2": 1.57,  # 90 degrees in radians
         "RF_JOINT3": -2.88,  # -165 degrees in radians
-        "RB_JOINT1": 0.0,
-        "RB_JOINT2": -1.57,  # -90 degrees in radians
-        "RB_JOINT3": 2.88,   # 165 degrees in radians
-        "LB_JOINT1": 0.0,
-        "LB_JOINT2": -1.57,  # -90 degrees in radians
-        "LB_JOINT3": 2.88,   # 165 degrees in radians
-        "LF_JOINT1": 0.0,
-        "LF_JOINT2": 1.57,   # 90 degrees in radians
-        "LF_JOINT3": -2.88,  # -165 degrees in radians
+        # ... add all other joints
     }
-    joint_vel = {}
+    joint_vel = {}  # Initialize with zero velocities
     pos = [0.0, 0.0, 0.52]  # Starting height above ground
     rot = [1.0, 0.0, 0.0, 0.0]  # Quaternion [w, x, y, z]
+    lin_vel = [0.0, 0.0, 0.0]  # Linear velocity
+    ang_vel = [0.0, 0.0, 0.0]  # Angular velocity
 
 # Create the articulation configuration
 YOUR_ROBOT_CFG = ArticulationCfg(
-    prim_path="/World/envs/env_.*/YOUR_ROBOT_PRIM_NAME",  # example is /World/envs/env_.*/yonsoku_robot
+    prim_path="/World/envs/env_.*/your_robot_name",
     # Use spawn with UsdFileCfg to properly load the USD file
     spawn=UsdFileCfg(
         usd_path=_USD_PATH,
-        rigid_props={
-            "enable_gyroscopic_forces": True,
-            "max_depenetration_velocity": 100.0,
-        },
-        articulation_props={
-            "solver_position_iteration_count": 4,
-            "solver_velocity_iteration_count": 0,
-            "sleep_threshold": 0.005,
-            "stabilization_threshold": 0.001,
-        },
+        rigid_props=RigidBodyPropertiesCfg(
+            enable_gyroscopic_forces=True,
+            max_depenetration_velocity=100.0,
+        ),
+        articulation_props=ArticulationRootPropertiesCfg(
+            solver_position_iteration_count=4,
+            solver_velocity_iteration_count=0,
+            sleep_threshold=0.005,
+            stabilization_threshold=0.001,
+        ),
         activate_contact_sensors=True,
     ),
     # Define actuators with appropriate configs
     actuators={
+        # Use regular expressions to group similar joints
         "RF_JOINT[1-3]": ImplicitActuatorCfg(
             joint_names_expr="RF_JOINT[1-3]",
             stiffness=2000.0,
             damping=20.1,
             effort_limit_sim=2000.0
         ),
-        "RB_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="RB_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
-        ),
-        "LB_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="LB_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
-        ),
-        "LF_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="LF_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
-        ),
+        # ... define actuators for all joints
     },
     # Use our custom InitState class
     init_state=InitState(),
@@ -323,6 +312,7 @@ YOUR_ROBOT_CFG = ArticulationCfg(
 - Default joint positions should reflect a stable starting pose
 - Root position should place the robot at an appropriate height above the ground
 - Adjust stiffness and damping values to match your robot's controllers
+- Use regular expressions to group similar joints where appropriate (e.g., "RF_JOINT[1-3]")
 
 ## Step 4: Creating the Environment Configuration
 
@@ -335,7 +325,7 @@ mkdir -p source/isaaclab_rl_experiments/isaaclab_rl_experiments/tasks/direct/you
 Create an environment configuration file:
 
 ```bash
-touch source/isaaclab_rl_experiments/isaaclab_rl_experiments/tasks/direct/your_robot_name/env_cfg.py
+touch source/isaaclab_rl_experiments/isaaclab_rl_experiments/tasks/direct/your_robot_name/your_robot_env_cfg.py
 ```
 
 Add the following content:
@@ -348,12 +338,15 @@ Add the following content:
 
 """Environment configuration for your robot in Isaac Lab."""
 
+import math
+import numpy as np
+
 from isaaclab.envs import DirectRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
 
-from isaaclab_rl_experiments.isaaclab_rl_experiments.assets.robots.YOUR_ROBOT_NAME.robot_config import YOUR_ROBOT_CFG
+from isaaclab_rl_experiments.assets.robots.your_robot_name.robot_config import YOUR_ROBOT_CFG
 
 @configclass
 class YourRobotEnvCfg(DirectRLEnvCfg):
@@ -361,7 +354,7 @@ class YourRobotEnvCfg(DirectRLEnvCfg):
     
     # Simulation parameters
     decimation = 4
-    episode_length_s = 10.0
+    episode_length_s = 20.0
     
     # Robot configuration
     robot_cfg = YOUR_ROBOT_CFG
@@ -370,32 +363,68 @@ class YourRobotEnvCfg(DirectRLEnvCfg):
     sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     
     # Scene configuration
-    scene = InteractiveSceneCfg(num_envs=2048, env_spacing=4.0, replicate_physics=True)
+    scene = InteractiveSceneCfg(num_envs=4096, env_spacing=5.0, replicate_physics=True)
     
-    # Observation and action spaces
-    observation_space = 0  # Will be determined in implementation
-    action_space = 0  # Will be determined in implementation
+    # Observation and action spaces - dimensions will be calculated in the environment
+    observation_space = 48  # Example: base state + joint state + previous actions + commands
+    action_space = 12       # Example: 12 joint positions (3 joints per leg for quadruped)
     state_space = 0
     
-    # Additional environment-specific parameters
-    # Add any task-specific parameters your environment needs
+    # Define joint names for easy access
+    leg_joint_names = {
+        "RF": ["RF_JOINT1", "RF_JOINT2", "RF_JOINT3"],
+        "RB": ["RB_JOINT1", "RB_JOINT2", "RB_JOINT3"],
+        "LB": ["LB_JOINT1", "LB_JOINT2", "LB_JOINT3"],
+        "LF": ["LF_JOINT1", "LF_JOINT2", "LF_JOINT3"]
+    }
+    
+    # Control parameters
+    action_scale = 1.0
+    
+    # Reward scales for different components
+    reward_scales = {
+        "tracking_lin_vel": 1.0,     # Linear velocity tracking
+        "tracking_ang_vel": 0.5,     # Angular velocity tracking
+        "lin_vel_z": -2.0,           # Penalty for vertical velocity
+        "ang_vel_xy": -0.05,         # Penalty for roll/pitch rates
+        "base_height": -3.0,         # Penalty for incorrect base height
+        "joint_regularization": -0.001,  # Penalty for extreme joint positions
+        "action_rate": -0.01,        # Penalty for sudden action changes
+        "feet_air_time": 2.0,        # Reward for proper gait timing
+    }
+    
+    # Initial randomization
+    start_position_noise = 0.0
+    start_rotation_noise = 0.0
+    
+    # Termination conditions
+    termination_height = 0.25
+    termination_roll = 1.57   # ~90 degrees
+    termination_pitch = 1.57  # ~90 degrees
+    
+    # Command ranges
+    command_x_range = [-1.0, 1.0]
+    command_y_range = [-1.0, 1.0]
+    command_yaw_range = [-1.0, 1.0]
 ```
 
 ### Environment Configuration Considerations
 
 - Adjust `decimation` and `episode_length_s` based on your task requirements
 - Set appropriate `num_envs` based on your GPU capabilities
-- Add task-specific parameters that your environment will need
+- Define a clear organization of joint names for easy access
+- Fine-tune reward scales to shape the desired behavior
+- Set appropriate command ranges based on your robot's capabilities
 
 ## Step 5: Implementing the Environment
 
 Create an environment implementation file:
 
 ```bash
-touch source/isaaclab_rl_experiments/isaaclab_rl_experiments/tasks/direct/your_robot_name/env.py
+touch source/isaaclab_rl_experiments/isaaclab_rl_experiments/tasks/direct/your_robot_name/your_robot_env.py
 ```
 
-Add the following skeleton implementation:
+Add the following implementation (based on a velocity control task):
 
 ```python
 # Copyright (c) 2022-2025, The Isaac Lab Project Developers.
@@ -406,15 +435,17 @@ Add the following skeleton implementation:
 """Environment implementation for your robot in Isaac Lab."""
 
 from collections.abc import Sequence
+import math
 import torch
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import Articulation
 from isaaclab.envs import DirectRLEnv
 from isaaclab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_plane
+from isaaclab.utils.math import quat_rotate_inverse, sample_uniform
 
-from .env_cfg import YourRobotEnvCfg
+from .your_robot_env_cfg import YourRobotEnvCfg
 
 
 class YourRobotEnv(DirectRLEnv):
@@ -424,39 +455,55 @@ class YourRobotEnv(DirectRLEnv):
     
     def __init__(self, cfg: YourRobotEnvCfg, render_mode: Optional[str] = None, **kwargs):
         """Initialize the environment."""
-        # Update observation and action spaces
-        cfg.observation_space = self._get_obs_size()
-        cfg.action_space = self._get_action_size()
-        
         super().__init__(cfg, render_mode, **kwargs)
         
-        # Initialize robot-specific attributes
-        self._setup_robot_attributes()
-    
-    def _setup_robot_attributes(self):
-        """Set up robot-specific attributes."""
-        # Extract joint indices, set up buffers, etc.
-        pass
-    
-    def _get_obs_size(self) -> int:
-        """Get the size of the observation space."""
-        # Calculate observation size based on your robot
-        return 0
-    
-    def _get_action_size(self) -> int:
-        """Get the size of the action space."""
-        # Calculate action size based on your robot
-        return 0
+        self.dt = self.cfg.sim.dt
+        
+        # Extract joint indices 
+        self.dof_indices = {}
+        for leg_name, joint_names in self.cfg.leg_joint_names.items():
+            indices, names = self.robot.find_joints(joint_names)
+            self.dof_indices[leg_name] = indices
+        
+        # Flatten all joint indices
+        self.all_dof_indices = []
+        for indices in self.dof_indices.values():
+            self.all_dof_indices.extend(indices)
+        
+        # Command values (velocity targets)
+        self.commands = torch.zeros(self.num_envs, 3, device=self.device)
+        
+        # Command ranges
+        self.command_ranges = torch.tensor(
+            [
+                self.cfg.command_x_range,
+                self.cfg.command_y_range,
+                self.cfg.command_yaw_range,
+            ],
+            device=self.device,
+        )
+        
+        # Setup feet contact tracking
+        self.feet_names = ["RF3", "RB3", "LB3", "LF3"]  # Last link of each leg
+        self.feet_indices = []
+        for name in self.feet_names:
+            self.feet_indices.append(self.robot.find_bodies(name)[0])
+        
+        self.feet_air_time = torch.zeros((self.num_envs, len(self.feet_names)), device=self.device)
+        self.last_contacts = torch.zeros((self.num_envs, len(self.feet_names)), device=self.device)
+        
+        # Store default joint positions
+        self.default_dof_pos = self.robot.data.default_joint_pos.clone()
+        
+        # Save previous actions
+        self.actions = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
+        self.last_actions = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
     
     def _setup_scene(self):
         """Set up the simulation scene."""
-        # Create robot
-        self.robot = Articulation(
-            self.cfg.robot_cfg.replace(
-                prim_path="/World/envs/env_.*/<ROBOT_PRIM_NAME>"
-            )
-        )
-        
+        # Create robot - use environment pattern
+        self.robot = Articulation(self.cfg.robot_cfg.replace(prim_path="/World/envs/env_.*/your_robot_name"))
+
         # Add ground plane
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
         
@@ -472,24 +519,116 @@ class YourRobotEnv(DirectRLEnv):
     
     def _pre_physics_step(self, actions: torch.Tensor) -> None:
         """Prepare for physics step by applying actions."""
-        # Apply actions to robot
-        pass
+        self.last_actions = self.actions.clone()
+        self.actions = actions.clone()
+        
+        # Scale actions to joint position targets
+        scaled_actions = actions * self.cfg.action_scale
+        
+        # Apply joint position targets
+        self.robot.set_joint_position_target(scaled_actions, joint_ids=self.all_dof_indices)
     
     def _get_observations(self) -> Dict[str, torch.Tensor]:
         """Get observations from the environment."""
-        # Get robot state and construct observations
-        return {"policy": torch.zeros((self.num_envs, self.num_observations), device=self.device)}
+        # Get robot state
+        joint_pos = self.robot.data.joint_pos
+        joint_vel = self.robot.data.joint_vel
+        
+        # Access individual components from body_state_w
+        base_pos = self.robot.data.body_state_w[:, 0, 0:3]
+        base_quat = self.robot.data.body_state_w[:, 0, 3:7]
+        base_lin_vel = self.robot.data.body_state_w[:, 0, 7:10]
+        base_ang_vel = self.robot.data.body_state_w[:, 0, 10:13]
+        
+        # Convert base velocity to base frame
+        base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
+        base_ang_vel_local = quat_rotate_inverse(base_quat, base_ang_vel)
+        
+        # Compose observations
+        obs = torch.cat(
+            [
+                base_lin_vel_local,  # 3
+                base_ang_vel_local,  # 3
+                joint_pos,  # 12
+                joint_vel,  # 12
+                self.actions,  # 12
+                self.commands,  # 3
+            ],
+            dim=-1,
+        )
+        
+        return {"policy": obs}
     
     def _get_rewards(self) -> torch.Tensor:
         """Calculate rewards."""
-        # Calculate rewards based on task objectives
-        return torch.zeros(self.num_envs, device=self.device)
+        # Access individual components from body_state_w
+        base_pos = self.robot.data.body_state_w[:, 0, 0:3]
+        base_quat = self.robot.data.body_state_w[:, 0, 3:7]
+        base_lin_vel = self.robot.data.body_state_w[:, 0, 7:10]
+        base_ang_vel = self.robot.data.body_state_w[:, 0, 10:13]
+        
+        # Convert base velocity to base frame
+        base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
+        base_ang_vel_local = quat_rotate_inverse(base_quat, base_ang_vel)
+        
+        # Calculate tracking reward components
+        lin_vel_error = torch.sum(torch.square(self.commands[:, :2] - base_lin_vel_local[:, :2]), dim=1)
+        ang_vel_error = torch.square(self.commands[:, 2] - base_ang_vel_local[:, 2])
+        
+        # Joint regularization and action rate penalties
+        joint_penalty = torch.sum(torch.square(self.robot.data.joint_pos), dim=1)
+        action_rate_penalty = torch.sum(torch.square(self.actions - self.last_actions), dim=1)
+        
+        # Calculate reward components
+        rewards = dict()
+        rewards["tracking_lin_vel"] = torch.exp(-lin_vel_error / 0.25) * self.cfg.reward_scales["tracking_lin_vel"]
+        rewards["tracking_ang_vel"] = torch.exp(-ang_vel_error / 0.25) * self.cfg.reward_scales["tracking_ang_vel"]
+        rewards["lin_vel_z"] = torch.square(base_lin_vel_local[:, 2]) * self.cfg.reward_scales["lin_vel_z"]
+        rewards["ang_vel_xy"] = torch.sum(torch.square(base_ang_vel_local[:, :2]), dim=1) * self.cfg.reward_scales["ang_vel_xy"]
+        rewards["joint_regularization"] = joint_penalty * self.cfg.reward_scales["joint_regularization"]
+        rewards["action_rate"] = action_rate_penalty * self.cfg.reward_scales["action_rate"]
+        rewards["base_height"] = torch.square(base_pos[:, 2] - 0.52) * self.cfg.reward_scales["base_height"]
+        
+        # Calculate feet air time rewards
+        # In a full implementation, you'd track foot contacts properly
+        rewards["feet_air_time"] = torch.mean(
+            torch.minimum(self.feet_air_time, torch.ones_like(self.feet_air_time) * 0.5), dim=1
+        ) * self.cfg.reward_scales["feet_air_time"]
+        
+        # Sum all rewards
+        total_reward = torch.zeros_like(rewards["tracking_lin_vel"])
+        for name, value in rewards.items():
+            total_reward += value
+        
+        return total_reward
     
     def _get_dones(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Determine if episodes should terminate."""
-        # Determine termination conditions
-        terminated = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
+        # Access individual components from body_state_w
+        base_pos = self.robot.data.body_state_w[:, 0, 0:3]
+        base_quat = self.robot.data.body_state_w[:, 0, 3:7]
+        
+        # Check for termination conditions
+        base_height = base_pos[:, 2]
+        
+        # Check orientation based on quaternion
+        qx, qy, qz, qw = base_quat[:, 0], base_quat[:, 1], base_quat[:, 2], base_quat[:, 3]
+        
+        # Calculate roll (x-axis rotation) and pitch (y-axis rotation)
+        roll = torch.atan2(2 * (qw * qx + qy * qz), 1 - 2 * (qx * qx + qy * qy))
+        pitch = torch.asin(2 * (qw * qy - qz * qx))
+        
+        # Check termination conditions
+        too_low = base_height < self.cfg.termination_height
+        roll_pitch_limit = torch.abs(roll) > self.cfg.termination_roll
+        roll_pitch_limit = roll_pitch_limit | (torch.abs(pitch) > self.cfg.termination_pitch)
+        
+        # Check timeout condition
         time_out = self.episode_length_buf >= self.max_episode_length - 1
+        
+        # Combine termination conditions
+        terminated = too_low | roll_pitch_limit
+        
         return terminated, time_out
     
     def _reset_idx(self, env_ids: Optional[Sequence[int]] = None):
@@ -500,16 +639,63 @@ class YourRobotEnv(DirectRLEnv):
         # Call parent reset
         super()._reset_idx(env_ids)
         
-        # Reset robot state
-        # This includes setting joint positions, velocities, etc.
+        # Reset commands
+        self._resample_commands(env_ids)
+        
+        # Reset air time tracking
+        self.feet_air_time[env_ids] = 0.0
+        self.last_contacts[env_ids] = 0.0
+        
+        # Get default root states from config's init_state
+        default_root_pos = torch.tensor([self.cfg.robot_cfg.init_state.pos], 
+                                device=self.device).repeat(len(env_ids), 1)
+        default_root_quat = torch.tensor([self.cfg.robot_cfg.init_state.rot], 
+                                 device=self.device).repeat(len(env_ids), 1)
+        default_root_lin_vel = torch.zeros_like(default_root_pos)
+        default_root_ang_vel = torch.zeros_like(default_root_pos)
+        
+        # Apply position and rotation noise if configured
+        # ... implementation details omitted for brevity ...
+        
+        # Set environment origins
+        default_root_pos += self.scene.env_origins[env_ids]
+        
+        # Reset joint positions
+        default_joint_pos = self.default_dof_pos[env_ids].clone()
+        default_joint_vel = torch.zeros_like(default_joint_pos)
+        
+        # Write robot state to simulation
+        self.robot.write_root_pose_to_sim(
+            torch.cat([default_root_pos, default_root_quat], dim=1), 
+            env_ids
+        )
+        self.robot.write_root_velocity_to_sim(
+            torch.cat([default_root_lin_vel, default_root_ang_vel], dim=1), 
+            env_ids
+        )
+        self.robot.write_joint_state_to_sim(default_joint_pos, default_joint_vel, None, env_ids)
+    
+    def _resample_commands(self, env_ids: Union[torch.Tensor, Sequence[int]]):
+        """Resample commands for the specified environments."""
+        # Create random commands within the specified ranges
+        self.commands[env_ids, 0] = sample_uniform(
+            self.command_ranges[0, 0], self.command_ranges[0, 1], (len(env_ids),), self.device
+        )
+        self.commands[env_ids, 1] = sample_uniform(
+            self.command_ranges[1, 0], self.command_ranges[1, 1], (len(env_ids),), self.device
+        )
+        self.commands[env_ids, 2] = sample_uniform(
+            self.command_ranges[2, 0], self.command_ranges[2, 1], (len(env_ids),), self.device
+        )
 ```
 
 ### Environment Implementation Considerations
 
-- Implement the observation and reward functions based on your task
-- Properly reset the robot to a stable state
-- Define appropriate termination conditions
-- Apply actions to the robot based on your control scheme
+- Implement proper observation and reward functions based on your task
+- Define a clear reward structure with individual components for different goals
+- Use appropriate termination conditions to detect failures
+- Implement randomization for better generalization if needed
+- Take advantage of vectorized operations with PyTorch for efficiency
 
 ## Step 6: Registering the Environment
 
