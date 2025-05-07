@@ -39,7 +39,7 @@ echo "Installing system dependencies..."
 sudo apt-get install libnccl2 libnccl-dev -y
 sudo apt install cmake build-essential -y
 
-# Install flake8 for code linting
+# Install flake8 for Python code linting
 echo "Installing flake8..."
 pip install flake8
 
