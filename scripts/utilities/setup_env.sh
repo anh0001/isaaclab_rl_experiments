@@ -39,5 +39,9 @@ echo "Installing system dependencies..."
 sudo apt-get install libnccl2 libnccl-dev -y
 sudo apt install cmake build-essential -y
 
+# Install flake8 for Python code linting
+echo "Installing flake8..."
+pip install flake8
+
 echo "Environment setup complete."
 echo "Please run: conda activate ./isaaclab_env to activate the environment."
