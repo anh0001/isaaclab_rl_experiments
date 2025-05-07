@@ -108,11 +108,13 @@ class YonsokuEnv(DirectRLEnv):
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
         
-        # Access individual components separately
-        base_pos = self.robot.data.root_pos
-        base_quat = self.robot.data.root_quat
-        base_lin_vel = self.robot.data.root_lin_vel
-        base_ang_vel = self.robot.data.root_ang_vel
+        # Access individual components from body_state_w
+        # body_state_w shape is [num_envs, num_bodies, 13]
+        # where 13 = [pos(3), quat(4), lin_vel(3), ang_vel(3)]
+        base_pos = self.robot.data.body_state_w[:, 0, 0:3]
+        base_quat = self.robot.data.body_state_w[:, 0, 3:7]
+        base_lin_vel = self.robot.data.body_state_w[:, 0, 7:10]
+        base_ang_vel = self.robot.data.body_state_w[:, 0, 10:13]
         
         # Convert base velocity to base frame
         base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
@@ -139,11 +141,11 @@ class YonsokuEnv(DirectRLEnv):
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
         
-        # Access individual components separately
-        base_pos = self.robot.data.root_pos
-        base_quat = self.robot.data.root_quat
-        base_lin_vel = self.robot.data.root_lin_vel
-        base_ang_vel = self.robot.data.root_ang_vel
+        # Access individual components from body_state_w
+        base_pos = self.robot.data.body_state_w[:, 0, 0:3]
+        base_quat = self.robot.data.body_state_w[:, 0, 3:7]
+        base_lin_vel = self.robot.data.body_state_w[:, 0, 7:10]
+        base_ang_vel = self.robot.data.body_state_w[:, 0, 10:13]
         
         # Convert base velocity to base frame
         base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
@@ -189,9 +191,9 @@ class YonsokuEnv(DirectRLEnv):
     
     def _get_dones(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Determine if episodes should terminate."""
-        # Access individual components separately
-        base_pos = self.robot.data.root_pos
-        base_quat = self.robot.data.root_quat
+        # Access individual components from body_state_w
+        base_pos = self.robot.data.body_state_w[:, 0, 0:3]
+        base_quat = self.robot.data.body_state_w[:, 0, 3:7]
         
         # Check for termination conditions
         base_height = base_pos[:, 2]
@@ -237,9 +239,11 @@ class YonsokuEnv(DirectRLEnv):
         # Reset air time tracking
         self._reset_feet_air_time(env_ids)
         
-        # Get default root states separately
-        default_root_pos = self.robot.data.default_root_pos[env_ids].clone()
-        default_root_quat = self.robot.data.default_root_quat[env_ids].clone()
+        # Get default root states from config's init_state
+        default_root_pos = torch.tensor([self.cfg.robot_cfg.init_state.pos], 
+                                device=self.device).repeat(len(env_ids), 1)
+        default_root_quat = torch.tensor([self.cfg.robot_cfg.init_state.rot], 
+                                 device=self.device).repeat(len(env_ids), 1)
         default_root_lin_vel = torch.zeros_like(default_root_pos)
         default_root_ang_vel = torch.zeros_like(default_root_pos)
         
