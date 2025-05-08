@@ -153,7 +153,6 @@ class YonsokuEnv(DirectRLEnv):
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
         joint_acc = (joint_vel - self.last_joint_vel) / self.dt
-        joint_torques = self.robot.data.joint_effort
         self.last_joint_vel = joint_vel.clone()
         
         # Access individual components from body_state_w
@@ -197,8 +196,10 @@ class YonsokuEnv(DirectRLEnv):
         # Penalize non-flat orientation (similar to flat_orientation_l2)
         rewards["orientation"] = -torch.sum(torch.square(roll_pitch), dim=1) * self.cfg.reward_scales["orientation"]
         
-        # Penalize joint torques (similar to dof_torques_l2)
-        rewards["dof_torques"] = -torch.sum(torch.square(joint_torques), dim=1) * self.cfg.reward_scales["dof_torques"]
+        # Replace the original torque-based reward with a proxy using scaled actions
+        # Use applied actions as a proxy for joint efforts
+        estimated_torques = self.actions * self.cfg.action_scale  # Scale actions to approximate torques
+        rewards["dof_torques"] = -torch.sum(torch.square(estimated_torques), dim=1) * self.cfg.reward_scales["dof_torques"]
         
         # Penalize joint accelerations (similar to dof_acc_l2)
         rewards["dof_acceleration"] = -torch.sum(torch.square(joint_acc), dim=1) * self.cfg.reward_scales["dof_acceleration"]
