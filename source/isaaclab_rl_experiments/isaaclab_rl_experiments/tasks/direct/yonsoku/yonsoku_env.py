@@ -110,7 +110,13 @@ class YonsokuEnv(DirectRLEnv):
         scaled_actions = actions * self.cfg.action_scale
         
         # Get the reference pose (default joint positions)
-        reference_pose = self.default_dof_pos.clone().repeat(self.num_envs, 1)
+        # Fix: Make sure default_dof_pos is properly shaped before repeating
+        if len(self.default_dof_pos.shape) == 1:
+            # If default_dof_pos is a 1D tensor, reshape it for broadcasting
+            reference_pose = self.default_dof_pos.unsqueeze(0).expand(self.num_envs, -1)
+        else:
+            # If it's already 2D, ensure it has the correct first dimension
+            reference_pose = self.default_dof_pos.expand(self.num_envs, -1)
         
         # Apply the actions as offsets to the reference pose
         position_targets = reference_pose + scaled_actions
