@@ -109,9 +109,14 @@ class YonsokuEnv(DirectRLEnv):
         # Scale actions according to the configured action_scale
         scaled_actions = actions * self.cfg.action_scale
         
-        # Apply actions directly to the robot's actuators
-        # DCMotor actuators will handle the action application
-        self.robot.set_joint_position_target(scaled_actions, joint_ids=self.all_dof_indices)
+        # Get the reference pose (default joint positions)
+        reference_pose = self.default_dof_pos.clone().repeat(self.num_envs, 1)
+        
+        # Apply the actions as offsets to the reference pose
+        position_targets = reference_pose + scaled_actions
+        
+        # Apply actions to the robot's actuators as position targets
+        self.robot.set_joint_position_target(position_targets, joint_ids=self.all_dof_indices)
     
     def _apply_action(self):
         """Apply the processed actions to the simulation at each physics step."""
