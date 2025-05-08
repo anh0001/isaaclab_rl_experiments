@@ -17,6 +17,19 @@ from isaaclab.sensors import ContactSensorCfg
 from isaaclab_rl_experiments.assets.robots.yonsoku.robot_config import YONSOKU_CFG
 
 @configclass
+class YonsokuSceneCfg(InteractiveSceneCfg):
+    """Custom scene configuration for Yonsoku with sensors as direct attributes."""
+    num_envs = 4096
+    env_spacing = 5.0
+    replicate_physics = True
+    # Define sensor as a direct attribute
+    foot_contacts = ContactSensorCfg(
+        prim_path="{ENV_REGEX_NS}/yonsoku_robot/.*3",  # This matches all foot links
+        history_length=1,
+        update_period=0.0  # Update every simulation step
+    )
+
+@configclass
 class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     """Environment configuration for Yonsoku quadruped robot velocity control."""
     
@@ -30,19 +43,8 @@ class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     # Simulation setup
     sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     
-    # Scene configuration
-    scene = InteractiveSceneCfg(
-        num_envs=4096, 
-        env_spacing=5.0, 
-        replicate_physics=True,
-        sensors={
-            "foot_contacts": ContactSensorCfg(
-                prim_path="{ENV_REGEX_NS}/yonsoku_robot/.*3",  # This matches all foot links
-                history_length=1,
-                update_period=0.0  # Update every simulation step
-            )
-        }
-    )
+    # Scene configuration - now using the custom scene config
+    scene = YonsokuSceneCfg()
     
     # Observation and action spaces
     observation_space = 48  # Base state + joint positions + velocities + commands
