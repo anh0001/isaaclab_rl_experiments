@@ -123,6 +123,20 @@ python scripts/rsl_rl/play.py --task=Template-Velocity-Flat-Yonsoku-v0 --num_env
 
 Replace `<timestamp>` and `<iteration>` with your actual values.
 
+### Monitoring Training with TensorBoard
+
+To monitor training progress with TensorBoard, follow these steps:
+
+1. **Start TensorBoard**: In a new terminal (with the conda environment activated), run:
+   ```bash
+   ./isaaclab.sh -p -m tensorboard.main --bind_all --logdir=logs
+   ```
+   This will start TensorBoard and bind it to all network interfaces, making it accessible from other machines if needed.
+
+2. **Access TensorBoard**: Open a web browser and go to `http://<your-ip-address>:6006` to access the TensorBoard dashboard. Replace `<your-ip-address>` with the actual IP address of the machine where TensorBoard is running. If you're running TensorBoard on the same machine, you can use `http://localhost:6006`.
+
+3. **Visualize Training**: In the TensorBoard dashboard, you can visualize various training metrics, including episode reward, loss, and other custom metrics you may have added to your training script.
+
 ## Development
 
 ### Set up IDE (Optional)
