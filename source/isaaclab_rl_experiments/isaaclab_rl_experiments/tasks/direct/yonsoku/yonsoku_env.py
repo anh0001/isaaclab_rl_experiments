@@ -106,15 +106,17 @@ class YonsokuEnv(DirectRLEnv):
         self.last_actions = self.actions.clone()
         self.actions = actions.clone()
         
-        # Scale actions to joint position targets
+        # Scale actions according to the configured action_scale
         scaled_actions = actions * self.cfg.action_scale
         
-        # Apply joint position targets
+        # Apply actions directly to the robot's actuators
+        # DCMotor actuators will handle the action application
         self.robot.set_joint_position_target(scaled_actions, joint_ids=self.all_dof_indices)
     
     def _apply_action(self):
         """Apply the processed actions to the simulation at each physics step."""
-        # Write the joint position targets to the simulation
+        # DCMotor actuators will handle the physics-based actuation
+        # Just ensure the data is written to sim
         self.robot.write_data_to_sim()
     
     def _get_observations(self) -> Dict[str, torch.Tensor]:
@@ -200,8 +202,8 @@ class YonsokuEnv(DirectRLEnv):
         rewards["orientation"] = -torch.sum(torch.square(roll_pitch), dim=1) * self.cfg.reward_scales["orientation"]
         
         # Replace the original torque-based reward with a proxy using scaled actions
-        # Use applied actions as a proxy for joint efforts
-        estimated_torques = self.actions * self.cfg.action_scale  # Scale actions to approximate torques
+        # For DCMotor actuators, the torques will be physically simulated by the motor
+        estimated_torques = self.actions * self.cfg.action_scale  # Scale actions as proxy for torques
         rewards["dof_torques"] = -torch.sum(torch.square(estimated_torques), dim=1) * self.cfg.reward_scales["dof_torques"]
         
         # Penalize joint accelerations (similar to dof_acc_l2)

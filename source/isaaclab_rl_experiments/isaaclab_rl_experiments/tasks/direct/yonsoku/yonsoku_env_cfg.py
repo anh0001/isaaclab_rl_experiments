@@ -64,7 +64,7 @@ class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     ang_velocity_scale = 0.5
     dof_position_scale = 1.0
     dof_velocity_scale = 0.05
-    action_scale = 1.0
+    action_scale = 0.25  # Changed from 1.0 to match A1's scale
     
     # Reward scales - Modified to match Unitree A1 approach
     reward_scales = {
