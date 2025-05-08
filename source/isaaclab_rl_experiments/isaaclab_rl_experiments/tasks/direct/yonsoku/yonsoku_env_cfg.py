@@ -12,6 +12,7 @@ from isaaclab.envs import DirectRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
+from isaaclab.sensors import ContactSensorCfg
 
 from isaaclab_rl_experiments.assets.robots.yonsoku.robot_config import YONSOKU_CFG
 
@@ -30,7 +31,18 @@ class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     
     # Scene configuration
-    scene = InteractiveSceneCfg(num_envs=4096, env_spacing=5.0, replicate_physics=True)
+    scene = InteractiveSceneCfg(
+        num_envs=4096, 
+        env_spacing=5.0, 
+        replicate_physics=True,
+        sensors={
+            "foot_contacts": ContactSensorCfg(
+                prim_path="{ENV_REGEX_NS}/yonsoku_robot/.*3",  # This matches all foot links
+                history_length=1,
+                update_period=0.0  # Update every simulation step
+            )
+        }
+    )
     
     # Observation and action spaces
     observation_space = 48  # Base state + joint positions + velocities + commands

@@ -94,6 +94,9 @@ class YonsokuEnv(DirectRLEnv):
         # Add articulation to scene
         self.scene.articulations["robot"] = self.robot
         
+        # Note: Removed the problematic line that manually added the contact sensor
+        # The sensors are now created from the configuration in InteractiveSceneCfg
+        
         # Add lights
         light_cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.8, 0.8, 0.8))
         light_cfg.func("/World/Light", light_cfg)
@@ -214,11 +217,27 @@ class YonsokuEnv(DirectRLEnv):
         rewards["action_rate"] = -torch.sum(torch.square(self.actions - self.last_actions), dim=1) * self.cfg.reward_scales["action_rate"]
         
         # Update feet air time calculations
+        # Get foot contacts from the contact sensor
         feet_contacts = torch.zeros((self.num_envs, len(self.feet_indices)), device=self.device)
-        for i, foot_idx in enumerate(self.feet_indices):
-            # Check if foot is in contact with ground
-            contact_forces = self.robot.data.body_force_sensor[:, foot_idx]
-            feet_contacts[:, i] = torch.norm(contact_forces, dim=1) > 1.0  # Contact if force is significant
+        
+        # Check if the foot_contacts sensor exists (safer check)
+        if "foot_contacts" in self.scene.sensors:
+            # Get contact forces from the sensor
+            contact_forces = self.scene.sensors["foot_contacts"].data.net_forces_w
+            
+            # Map the forces to the appropriate feet indices
+            if contact_forces is not None and contact_forces.shape[1] >= len(self.feet_indices):
+                for i in range(len(self.feet_indices)):
+                    # Check if the force magnitude exceeds the threshold
+                    feet_contacts[:, i] = torch.norm(contact_forces[:, i], dim=1) > 1.0
+        else:
+            # Fallback method if sensor isn't correctly initialized
+            # Check for collision states directly:
+            for i, foot_name in enumerate(self.feet_names):
+                body_indices, _ = self.robot.find_bodies(foot_name)
+                if len(body_indices) > 0:
+                    # Check if bodies have non-zero contact forces (simplified)
+                    feet_contacts[:, i] = self.robot.has_contact(body_ids=body_indices[0])
         
         # Update air time tracker
         self.feet_air_time += self.dt
