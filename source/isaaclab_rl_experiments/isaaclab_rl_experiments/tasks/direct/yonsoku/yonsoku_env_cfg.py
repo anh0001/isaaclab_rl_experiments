@@ -12,8 +12,22 @@ from isaaclab.envs import DirectRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
+from isaaclab.sensors import ContactSensorCfg
 
 from isaaclab_rl_experiments.assets.robots.yonsoku.robot_config import YONSOKU_CFG
+
+@configclass
+class YonsokuSceneCfg(InteractiveSceneCfg):
+    """Custom scene configuration for Yonsoku with sensors as direct attributes."""
+    num_envs = 4096
+    env_spacing = 5.0
+    replicate_physics = True
+    # Define sensor as a direct attribute
+    foot_contacts = ContactSensorCfg(
+        prim_path="{ENV_REGEX_NS}/yonsoku_robot/.*3",  # This matches all foot links
+        history_length=1,
+        update_period=0.0  # Update every simulation step
+    )
 
 @configclass
 class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
@@ -29,11 +43,11 @@ class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     # Simulation setup
     sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     
-    # Scene configuration
-    scene = InteractiveSceneCfg(num_envs=4096, env_spacing=5.0, replicate_physics=True)
+    # Scene configuration - now using the custom scene config
+    scene = YonsokuSceneCfg()
     
     # Observation and action spaces
-    observation_space = 48  # To be determined based on robot state
+    observation_space = 48  # Base state + joint positions + velocities + commands
     action_space = 12  # 12 joint actuators (3 per leg)
     state_space = 0
     
@@ -50,39 +64,37 @@ class YonsokuVelocityEnvCfg(DirectRLEnvCfg):
     ang_velocity_scale = 0.5
     dof_position_scale = 1.0
     dof_velocity_scale = 0.05
-    action_scale = 1.0
+    action_scale = 0.25  # Changed from 1.0 to match A1's scale
     
-    # Reward scales
+    # Reward scales - Modified to match Unitree A1 approach
     reward_scales = {
-        "lin_vel_z": -2.0,
-        "ang_vel_xy": -0.05,
-        "orientation": -0.5,
-        "base_height": -3.0,
-        "joint_regularization": -0.001,
-        "action_rate": -0.01,
-        "feet_air_time": 2.0,
-        "tracking_lin_vel": 1.0,
-        "tracking_ang_vel": 0.5
+        "lin_vel_z": -2.0,            # Penalize vertical movement
+        "ang_vel_xy": -0.05,          # Penalize roll and pitch angular velocity
+        "orientation": -2.5,          # Penalize non-flat orientation (like flat_orientation_l2)
+        "dof_torques": -0.0002,       # Match the A1 dof_torques_l2 weight
+        "dof_acceleration": -2.5e-7,  # Match the A1 dof_acc_l2 weight
+        "base_height": -2.5,          # Penalize incorrect base height
+        "joint_regularization": -0.001, # Regularize joint positions
+        "action_rate": -0.01,         # Penalize rapid action changes
+        "feet_air_time": 0.25,        # Reward feet air time (from A1 flat config)
+        "tracking_lin_vel_xy": 1.5,   # Match A1's track_lin_vel_xy_exp weight
+        "tracking_ang_vel_z": 0.75    # Match A1's track_ang_vel_z_exp weight
     }
     
     # Initial randomization
-    start_position_noise = 0.0
-    start_rotation_noise = 0.0
+    start_position_noise = 0.1
+    start_rotation_noise = 0.1
     
     # Termination conditions
     termination_height = 0.25
-    termination_roll = 1.57  # ~90 degrees
-    termination_pitch = 1.57  # ~90 degrees
+    termination_roll = 1.0   # Reduced to be more sensitive to roll problems
+    termination_pitch = 1.0  # Reduced to be more sensitive to pitch problems
     
-    # Targets
-    default_target_lin_velocity = [0.0, 0.0, 0.0]  # x, y, z
-    default_target_ang_velocity = [0.0, 0.0, 0.0]  # roll, pitch, yaw
-    
-    # Command ranges
-    command_x_range = [-1.0, 1.0]
-    command_y_range = [-1.0, 1.0]
-    command_yaw_range = [-1.0, 1.0]
+    # Command ranges - set to similar ranges as would be used for A1
+    command_x_range = [0.0, 1.0]      # Forward velocity (m/s)
+    command_y_range = [-0.5, 0.5]     # Lateral velocity (m/s)
+    command_yaw_range = [-1.0, 1.0]   # Yaw velocity (rad/s)
     
     # Command curriculum
-    lin_velocity_curriculum = False
-    curriculum_steps = 5000
+    lin_velocity_curriculum = True     # Enable linear velocity curriculum
+    curriculum_steps = 5000           # Number of steps for curriculum

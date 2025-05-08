@@ -6,7 +6,7 @@
 """Yonsoku quadruped robot configuration for Isaac Lab."""
 
 from isaaclab.assets import ArticulationCfg
-from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.actuators import DCMotorCfg  # Changed from ImplicitActuatorCfg to DCMotorCfg
 from isaaclab.sim.spawners.from_files import UsdFileCfg
 from isaaclab.utils import configclass
 from isaaclab.sim.schemas import RigidBodyPropertiesCfg, ArticulationRootPropertiesCfg
@@ -19,17 +19,17 @@ _USD_PATH = "/home/dl-box/codes/anhar/isaaclab_rl_experiments/source/isaaclab_rl
 class InitState:
     joint_pos = {
         "RF_JOINT1": 0.0,
-        "RF_JOINT2": 1.57,  # 90 degrees in radians
-        "RF_JOINT3": -2.88,  # -165 degrees in radians
+        "RF_JOINT2": 0.8,  # Reduced from 1.57 to match A1's thigh joint angle
+        "RF_JOINT3": -1.5,  # Reduced from -2.88 to match A1's calf joint angle
         "RB_JOINT1": 0.0,
-        "RB_JOINT2": -1.57,  # -90 degrees in radians
-        "RB_JOINT3": 2.88,   # 165 degrees in radians
+        "RB_JOINT2": -0.8,  # Reduced from -1.57
+        "RB_JOINT3": 1.5,   # Reduced from 2.88
         "LB_JOINT1": 0.0,
-        "LB_JOINT2": -1.57,  # -90 degrees in radians
-        "LB_JOINT3": 2.88,   # 165 degrees in radians
+        "LB_JOINT2": -0.8,  # Reduced from -1.57
+        "LB_JOINT3": 1.5,   # Reduced from 2.88
         "LF_JOINT1": 0.0,
-        "LF_JOINT2": 1.57,   # 90 degrees in radians
-        "LF_JOINT3": -2.88,  # -165 degrees in radians
+        "LF_JOINT2": 0.8,   # Reduced from 1.57
+        "LF_JOINT3": -1.5,  # Reduced from -2.88
     }
     joint_vel = {}
     pos = [0.0, 0.0, 0.52]  # Starting height above ground
@@ -55,32 +55,17 @@ YONSOKU_CFG = ArticulationCfg(
         ),
         activate_contact_sensors=True,
     ),
-    # Define actuators with appropriate configs
+    # Define actuators with DCMotorCfg - parameters similar to A1
     actuators={
-        "RF_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="RF_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
+        "legs": DCMotorCfg(
+            joint_names_expr=["RF_JOINT[1-3]", "RB_JOINT[1-3]", "LB_JOINT[1-3]", "LF_JOINT[1-3]"],
+            effort_limit=33.5,
+            saturation_effort=33.5,
+            velocity_limit=21.0,
+            stiffness=25.0,
+            damping=0.5,
+            friction=0.0,
         ),
-        "RB_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="RB_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
-        ),
-        "LB_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="LB_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
-        ),
-        "LF_JOINT[1-3]": ImplicitActuatorCfg(
-            joint_names_expr="LF_JOINT[1-3]",
-            stiffness=2000.0,
-            damping=20.1,
-            effort_limit_sim=2000.0
-        )
     },
     # Use our custom InitState class
     init_state=InitState(),
