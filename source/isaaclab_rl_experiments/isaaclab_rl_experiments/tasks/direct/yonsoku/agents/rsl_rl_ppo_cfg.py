@@ -12,11 +12,11 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     """RSL-RL PPO configuration for Yonsoku robot."""
     
-    # Runner configuration
+    # Runner configuration - closer to A1 settings
     seed = 42
     device = "cuda:0"
     num_steps_per_env = 24
-    max_iterations = 500
+    max_iterations = 1500  # Match A1's max_iterations
     save_interval = 50
     experiment_name = "yonsoku_velocity"
     run_name = ""
@@ -30,10 +30,10 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     clip_actions = 1.0
     empirical_normalization = True
     
-    # Actor-Critic configuration
+    # Actor-Critic configuration - match A1's network sizes
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
-        actor_hidden_dims=[512, 256, 128],
+        actor_hidden_dims=[512, 256, 128],  # Match A1's network architecture
         critic_hidden_dims=[512, 256, 128],
         activation="elu",
     )
@@ -43,10 +43,10 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        entropy_coef=0.01,
-        num_learning_epochs=4,
+        entropy_coef=0.01,  # Same as A1
+        num_learning_epochs=5,
         num_mini_batches=4,
-        learning_rate=3.0e-4,
+        learning_rate=1.0e-3,
         schedule="adaptive",
         gamma=0.99,
         lam=0.95,

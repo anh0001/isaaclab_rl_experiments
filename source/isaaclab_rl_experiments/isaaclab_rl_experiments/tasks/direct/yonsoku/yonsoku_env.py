@@ -72,9 +72,13 @@ class YonsokuEnv(DirectRLEnv):
         # Store default joint positions
         self.default_dof_pos = self.robot.data.default_joint_pos.clone()
         
-        # Save previous actions
+        # Save previous actions and joint velocities for acceleration calculation
         self.actions = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
         self.last_actions = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
+        self.last_joint_vel = torch.zeros_like(self.robot.data.joint_vel)
+
+        # Initialize additional trackers for rewards
+        self.last_joint_vel = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
     
     def _setup_scene(self):
         """Set up the simulation scene."""
@@ -144,10 +148,13 @@ class YonsokuEnv(DirectRLEnv):
         return {"policy": obs}
     
     def _get_rewards(self) -> torch.Tensor:
-        """Calculate rewards."""
+        """Calculate rewards based on Unitree A1 approach."""
         # Get robot state
         joint_pos = self.robot.data.joint_pos
         joint_vel = self.robot.data.joint_vel
+        joint_acc = (joint_vel - self.last_joint_vel) / self.dt
+        joint_torques = self.robot.data.joint_effort
+        self.last_joint_vel = joint_vel.clone()
         
         # Access individual components from body_state_w
         base_pos = self.robot.data.body_state_w[:, 0, 0:3]
@@ -159,34 +166,72 @@ class YonsokuEnv(DirectRLEnv):
         base_lin_vel_local = quat_rotate_inverse(base_quat, base_lin_vel)
         base_ang_vel_local = quat_rotate_inverse(base_quat, base_ang_vel)
         
-        # Calculate tracking reward
+        # Get roll and pitch from quaternion
+        roll_pitch = torch.zeros((self.num_envs, 2), device=self.device)
+        qx, qy, qz, qw = base_quat[:, 0], base_quat[:, 1], base_quat[:, 2], base_quat[:, 3]
+        
+        # Calculate roll (x-axis rotation)
+        roll_pitch[:, 0] = torch.atan2(2 * (qw * qx + qy * qz), 1 - 2 * (qx * qx + qy * qy))
+        
+        # Calculate pitch (y-axis rotation)
+        roll_pitch[:, 1] = torch.asin(2 * (qw * qy - qz * qx))
+        
+        # Calculate reward components similar to A1
+        rewards = dict()
+        
+        # Tracking linear velocity - exponential reward like A1's tracking reward
+        # This implements the track_lin_vel_xy_exp and track_ang_vel_z_exp from A1
         lin_vel_error = torch.sum(torch.square(self.commands[:, :2] - base_lin_vel_local[:, :2]), dim=1)
         ang_vel_error = torch.square(self.commands[:, 2] - base_ang_vel_local[:, 2])
         
-        # Joint regularization and action rate penalties
-        joint_penalty = torch.sum(torch.square(joint_pos), dim=1)
-        action_rate_penalty = torch.sum(torch.square(self.actions - self.last_actions), dim=1)
+        # Exponential rewards for better tracking (matching A1's approach)
+        rewards["tracking_lin_vel_xy"] = torch.exp(-lin_vel_error / 0.25) * self.cfg.reward_scales["tracking_lin_vel_xy"]
+        rewards["tracking_ang_vel_z"] = torch.exp(-ang_vel_error / 0.25) * self.cfg.reward_scales["tracking_ang_vel_z"]
         
-        # Calculate reward components
-        rewards = dict()
-        rewards["tracking_lin_vel"] = torch.exp(-lin_vel_error / 0.25) * self.cfg.reward_scales["tracking_lin_vel"]
-        rewards["tracking_ang_vel"] = torch.exp(-ang_vel_error / 0.25) * self.cfg.reward_scales["tracking_ang_vel"]
-        rewards["lin_vel_z"] = torch.square(base_lin_vel_local[:, 2]) * self.cfg.reward_scales["lin_vel_z"]
-        rewards["ang_vel_xy"] = torch.sum(torch.square(base_ang_vel_local[:, :2]), dim=1) * self.cfg.reward_scales["ang_vel_xy"]
-        rewards["joint_regularization"] = joint_penalty * self.cfg.reward_scales["joint_regularization"]
-        rewards["action_rate"] = action_rate_penalty * self.cfg.reward_scales["action_rate"]
-        rewards["base_height"] = torch.square(base_pos[:, 2] - 0.52) * self.cfg.reward_scales["base_height"]
+        # Penalize vertical velocity
+        rewards["lin_vel_z"] = -torch.square(base_lin_vel_local[:, 2]) * self.cfg.reward_scales["lin_vel_z"]
         
-        # Calculate feet air time
-        # Simple approximation - in a full implementation, would need to track foot contacts properly
+        # Penalize pitch and roll angular velocity (stability)
+        rewards["ang_vel_xy"] = -torch.sum(torch.square(base_ang_vel_local[:, :2]), dim=1) * self.cfg.reward_scales["ang_vel_xy"]
+        
+        # Penalize non-flat orientation (similar to flat_orientation_l2)
+        rewards["orientation"] = -torch.sum(torch.square(roll_pitch), dim=1) * self.cfg.reward_scales["orientation"]
+        
+        # Penalize joint torques (similar to dof_torques_l2)
+        rewards["dof_torques"] = -torch.sum(torch.square(joint_torques), dim=1) * self.cfg.reward_scales["dof_torques"]
+        
+        # Penalize joint accelerations (similar to dof_acc_l2)
+        rewards["dof_acceleration"] = -torch.sum(torch.square(joint_acc), dim=1) * self.cfg.reward_scales["dof_acceleration"]
+        
+        # Penalize incorrect base height
+        rewards["base_height"] = -torch.square(base_pos[:, 2] - 0.52) * self.cfg.reward_scales["base_height"]
+        
+        # Penalize joint position regularization
+        rewards["joint_regularization"] = -torch.sum(torch.square(joint_pos), dim=1) * self.cfg.reward_scales["joint_regularization"]
+        
+        # Penalize action rate (rapid changes in actions)
+        rewards["action_rate"] = -torch.sum(torch.square(self.actions - self.last_actions), dim=1) * self.cfg.reward_scales["action_rate"]
+        
+        # Update feet air time calculations
+        feet_contacts = torch.zeros((self.num_envs, len(self.feet_indices)), device=self.device)
+        for i, foot_idx in enumerate(self.feet_indices):
+            # Check if foot is in contact with ground
+            contact_forces = self.robot.data.body_force_sensor[:, foot_idx]
+            feet_contacts[:, i] = torch.norm(contact_forces, dim=1) > 1.0  # Contact if force is significant
+        
+        # Update air time tracker
         self.feet_air_time += self.dt
+        # Reset air time when contact is detected
+        self.feet_air_time = torch.where(feet_contacts > 0, torch.zeros_like(self.feet_air_time), self.feet_air_time)
+        
+        # Calculate feet air time reward similar to A1
         feet_air_time_reward = torch.mean(
             torch.minimum(self.feet_air_time, torch.ones_like(self.feet_air_time) * 0.5), dim=1
         ) * self.cfg.reward_scales["feet_air_time"]
         rewards["feet_air_time"] = feet_air_time_reward
         
         # Sum all rewards
-        total_reward = torch.zeros_like(rewards["tracking_lin_vel"])
+        total_reward = torch.zeros_like(rewards["tracking_lin_vel_xy"])
         for name, value in rewards.items():
             total_reward += value
         
