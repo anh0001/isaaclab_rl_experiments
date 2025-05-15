@@ -10,22 +10,40 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 
 @configclass
 class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 16
-    max_iterations = 150
+    """RSL-RL PPO configuration for A1 robot."""
+    
+    # Runner configuration
+    seed = 42
+    device = "cuda:0"
+    num_steps_per_env = 24
+    max_iterations = 1500
     save_interval = 50
-    experiment_name = "cartpole_direct"
-    empirical_normalization = False
+    experiment_name = "a1_velocity"
+    run_name = ""
+    
+    # Curriculum settings
+    learning_starts = 0
+    curriculum_steps = 0
+    
+    # Normalization
+    clip_observations = 5.0
+    clip_actions = 1.0
+    empirical_normalization = True
+    
+    # Actor-Critic configuration
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
-        actor_hidden_dims=[32, 32],
-        critic_hidden_dims=[32, 32],
+        actor_hidden_dims=[512, 256, 128],
+        critic_hidden_dims=[512, 256, 128],
         activation="elu",
     )
+    
+    # PPO Algorithm configuration
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        entropy_coef=0.005,
+        entropy_coef=0.01,
         num_learning_epochs=5,
         num_mini_batches=4,
         learning_rate=1.0e-3,
