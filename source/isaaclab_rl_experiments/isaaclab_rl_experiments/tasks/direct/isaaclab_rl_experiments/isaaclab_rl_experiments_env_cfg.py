@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from isaaclab_assets.robots.unitree_a1 import A1_CFG
+from isaaclab_assets.robots.unitree import UNITREE_A1_CFG
 
 from isaaclab.envs import DirectRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
@@ -33,7 +33,7 @@ class A1VelocityEnvCfg(DirectRLEnvCfg):
     episode_length_s = 20.0
     
     # Robot configuration - using A1_CFG from isaaclab_assets
-    robot_cfg = A1_CFG.replace(prim_path="/World/envs/env_.*/robot")
+    robot_cfg = UNITREE_A1_CFG.replace(prim_path="/World/envs/env_.*/robot")
     
     # Simulation setup
     sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
