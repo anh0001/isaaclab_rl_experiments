@@ -2,16 +2,16 @@
 
 ## Overview
 
-This project extends Isaac Lab to implement reinforcement learning experiments for locomotion tasks, focusing on Ant and Anymal robots. It builds on the Isaac Lab template to provide a structured environment for developing and evaluating RL algorithms in robotics simulation.
+This project extends Isaac Lab to implement reinforcement learning experiments for locomotion tasks, focusing on our own quadruped robot. It builds on the Isaac Lab template to provide a structured environment for developing and evaluating RL algorithms in robotics simulation.
 
 **Key Features:**
 
-- Pre-configured training pipelines for Ant and Anymal locomotion tasks
+- Pre-configured training pipelines for quadruped locomotion tasks
 - Support for multiple RL frameworks (RL-Games, RSL-RL, Stable-Baselines3, SKRL)
 - Tools for model evaluation and visualization
 - Isolated development environment outside core Isaac Lab
 
-**Keywords:** reinforcement learning, locomotion, isaaclab, ant, anymal
+**Keywords:** reinforcement learning, locomotion, isaaclab, quadruped
 
 ## Prerequisites
 
