@@ -19,7 +19,7 @@ class A1SceneCfg(InteractiveSceneCfg):
     replicate_physics = True
     # Define foot contact sensor
     foot_contacts = ContactSensorCfg(
-        prim_path="{ENV_REGEX_NS}/robot/.*_FOOT",  # Matches all foot links
+        prim_path="{ENV_REGEX_NS}/robot/.*_foot",  # Matches all foot links
         history_length=1,
         update_period=0.0  # Update every simulation step
     )
@@ -32,9 +32,16 @@ class A1VelocityEnvCfg(DirectRLEnvCfg):
     decimation = 4
     episode_length_s = 20.0
     
-    # Robot configuration - using A1_CFG from isaaclab_assets
-    robot_cfg = UNITREE_A1_CFG.replace(prim_path="/World/envs/env_.*/robot")
+    # Make sure activate_contact_sensors is explicitly set to True
+    robot_cfg = UNITREE_A1_CFG.replace(
+        prim_path="/World/envs/env_.*/robot",
+        # Ensure contact sensors are activated
+        spawn=UNITREE_A1_CFG.spawn.replace(activate_contact_sensors=True)
+    )
     
+    # Update the foot names to match A1's naming convention
+    feet_names = ["FL_foot", "FR_foot", "RL_foot", "RR_foot"]
+
     # Simulation setup
     sim = SimulationCfg(dt=1/120.0, render_interval=decimation)
     

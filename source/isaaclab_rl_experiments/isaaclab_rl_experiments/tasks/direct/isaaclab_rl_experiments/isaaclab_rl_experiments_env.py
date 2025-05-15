@@ -55,7 +55,9 @@ class A1VelocityEnv(DirectRLEnv):
         )
         
         # Initialize feet contact buffers
-        self.feet_names = ["FR_foot", "FL_foot", "RR_foot", "RL_foot"]
+
+        # Use the feet names from the config
+        self.feet_names = self.cfg.feet_names
         self.feet_indices = []
         for name in self.feet_names:
             self.feet_indices.append(self.robot.find_bodies(name)[0])
