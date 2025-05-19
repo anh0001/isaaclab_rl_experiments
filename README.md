@@ -79,6 +79,9 @@ Make sure your conda environment is activated (`conda activate ./isaaclab_env`),
 # Train Unitree-A1
 python scripts/rsl_rl/train.py --task=Isaac-Velocity-Flat-Unitree-A1-v0 --num_envs=4096 --headless
 
+# Train Unitree H1 Humanoid
+python scripts/rsl_rl/train.py --task=Isaac-Velocity-Flat-H1-v0 --num_envs=4096 --headless
+
 # Train Ant
 python scripts/rsl_rl/train.py --task=Isaac-Ant-v0 --num_envs=4096 --experiment_name=ant_locomotion
 
@@ -114,6 +117,9 @@ To evaluate a trained model (with the conda environment activated):
 # Evaluate Unitree A1
 python scripts/rsl_rl/play.py --task=Isaac-Velocity-Flat-Unitree-A1-v0 --num_envs=100 --checkpoint=logs/rsl_rl/unitree_a1_flat/2025-04-09_17-59-40/model_299.pt --video --video_length 1000
 
+# Evaluate Unitree H1
+python scripts/rsl_rl/play.py --task=Isaac-Velocity-Flat-H1-v0 --num_envs=100 --checkpoint=logs/rsl_rl/h1_flat/2025-05-20_08-36-32/model_299.pt --video --video_length 1000
+
 # Evaluate Ant
 python scripts/rsl_rl/play.py --task=Isaac-Ant-v0 --num_envs=16 --checkpoint=logs/rsl_rl/ant_locomotion/<timestamp>/model_<iteration>.pt --video
 
@@ -123,8 +129,8 @@ python scripts/rsl_rl/play.py --task=Isaac-Velocity-Rough-Anymal-C-v0 --num_envs
 # Evaluate Yonsoku
 python scripts/rsl_rl/play.py --task=Template-Velocity-Flat-Yonsoku-v0 --num_envs=100 --checkpoint=logs/rsl_rl/yonsoku_velocity/2025-05-08_12-17-41/model_1499.pt --video --video_length 1000
 
-# Evaluate Unitree-A1 Eco-Walker
-python scripts/rsl_rl/play.py --task=Template-Velocity-Flat-Unitree-A1-Play-v0 --num_envs=100 --checkpoint=logs/rsl_rl/unitree_a1_flat/2025-05-15_19-08-01/model_1499.pt --video --video_length 1000
+# Evaluate Unitree-A1 Eco-Walker flat
+python scripts/rsl_rl/play.py --task=Template-Velocity-Flat-Unitree-A1-Play-v0 --num_envs=100 --checkpoint=logs/rsl_rl/unitree_a1_flat/2025-05-19_18-04-03/model_299.pt --video --video_length 1000
 ```
 
 Replace `<timestamp>` and `<iteration>` with your actual values.
