@@ -93,6 +93,9 @@ python scripts/rsl_rl/train.py --task=Template-Velocity-Flat-Yonsoku-v0 --num_en
 
 # Train Unitree-A1 Eco-walker
 python scripts/rsl_rl/train.py --task=Template-Velocity-Flat-Unitree-A1-v0 --num_envs=4096 --headless
+
+# Train Unitree-A1 Eco-walker in soil environment
+python scripts/rsl_rl/train.py --task=Template-Velocity-SoilGarden-Unitree-A1-v0 --num_envs=4096 --headless
 ```
 
 **Using other frameworks:**
@@ -131,6 +134,9 @@ python scripts/rsl_rl/play.py --task=Template-Velocity-Flat-Yonsoku-v0 --num_env
 
 # Evaluate Unitree-A1 Eco-Walker flat
 python scripts/rsl_rl/play.py --task=Template-Velocity-Flat-Unitree-A1-Play-v0 --num_envs=100 --checkpoint=logs/rsl_rl/unitree_a1_flat/2025-05-19_18-04-03/model_299.pt --video --video_length 1000
+
+# Evaluate Unitree-A1 Eco-Walker soil environment
+python scripts/rsl_rl/play.py --task=Template-Velocity-SoilGarden-Unitree-A1-Play-v0 --num_envs=5 --checkpoint=logs/rsl_rl/unitree_a1_rough/2025-05-20_16-22-01/model_1499.pt --video --video_length 1000
 ```
 
 Replace `<timestamp>` and `<iteration>` with your actual values.
